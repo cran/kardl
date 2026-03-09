@@ -1,7 +1,7 @@
 Package: kardl
 Type: Package
 Title: Make Symmetric and Asymmetric ARDL Estimations
-Version: 0.1.1
+Version: 1.1.0
 Authors@R: 
   c(person(given = "Huseyin",
            family = "Karamelikli",
@@ -20,21 +20,19 @@ Description: Implements estimation procedures for Autoregressive Distributed Lag
     The package supports simultaneous modeling of symmetric and asymmetric regressors, 
     flexible treatment of short-run and long-run asymmetries, and automated equation handling. 
     It includes several cointegration testing approaches such as the Pesaran-Shin-Smith F 
-    and t bounds tests, the Banerjee error correction test, and the restricted ECM test, 
-    together with diagnostic tools including Wald tests for asymmetry, ARCH tests, and 
-    stability procedures (CUSUM and CUSUMQ). Methodological foundations are provided in 
-    Pesaran, Shin, and Smith (2001) <doi:10.1016/S0304-4076(01)00049-5> and Shin, Yu, and 
-    Greenwood-Nimmo (2014, ISBN:9780123855079).
+    and t bounds tests, and the restricted ECM test. 
+    Methodological foundations are provided in Pesaran, Shin, and Smith (2001) 
+    <doi:10.1016/S0304-4076(01)00049-5> and Shin, Yu, and Greenwood-Nimmo (2014, ISBN:9780123855079).
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: stats, msm, lmtest, nlWaldTest, car, utils
+Imports: stats, msm, lmtest, nlWaldTest, car, ggplot2, utils
 RoxygenNote: 7.3.3
 Suggests: knitr, rmarkdown, officer, flextable, equatags, magrittr,
-        rlang, ggplot2, tidyr, dplyr, testthat (>= 3.0.0)
+        rlang, tidyr, dplyr, testthat (>= 3.0.0)
 NeedsCompilation: no
 VignetteBuilder: knitr
-Packaged: 2025-10-06 12:27:43 UTC; huseyin
+Packaged: 2026-03-09 10:29:54 UTC; huseyin
 Author: Huseyin Karamelikli [aut, cre] (ORCID:
     <https://orcid.org/0000-0001-7622-0972>),
   Huseyin Utku Demir [aut] (ORCID:
@@ -42,4 +40,4 @@ Author: Huseyin Karamelikli [aut, cre] (ORCID:
 Depends: R (>= 3.5.0)
 Config/testthat/edition: 3
 Repository: CRAN
-Date/Publication: 2025-10-09 12:10:11 UTC
+Date/Publication: 2026-03-09 11:00:02 UTC

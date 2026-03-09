@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ## ----install, eval=FALSE------------------------------------------------------
 # 
 # # Install required packages
-# install.packages(c("stats", "msm", "lmtest", "nlWaldTest", "car", "strucchange", "utils"))
+# install.packages(c("stats", "msm", "lmtest", "nlWaldTest", "car", "strucchange", "utils","ggplot2"))
 # # Install kardl from GitHub
 # install.packages("devtools")
 # devtools::install_github("karamelikli/kardl")
@@ -26,7 +26,7 @@ library(kardl)
 ## ----data-prepare-------------------------------------------------------------
 
 # Define the model formula
-MyFormula <- CPI ~ ER + PPI + asym(ER + PPI) + deterministic(covid) + trend
+MyFormula <- CPI ~ ER + PPI + asymmetric(ER + PPI) + deterministic(covid) + trend
 
 
 ## ----model-grid---------------------------------------------------------------
@@ -34,9 +34,12 @@ MyFormula <- CPI ~ ER + PPI + asym(ER + PPI) + deterministic(covid) + trend
 # Set model options
 kardl_set(criterion = "BIC", differentAsymLag = TRUE, data=imf_example_data)
 # Estimate model with grid mode
-kardl_model <- kardl(data=imf_example_data,model= MyFormula, maxlag = 4, mode = "grid")
+kardl_model <- kardl(data=imf_example_data,formula= MyFormula, maxlag = 4, mode = "grid")
 # View results
 kardl_model
+
+
+## ----model-grid-custom-summary------------------------------------------------
 # Display model summary
 summary(kardl_model)
 
@@ -45,13 +48,18 @@ summary(kardl_model)
 
 kardl_model2 <- kardl(data=imf_example_data, MyFormula, mode = c(2, 1, 1, 3, 0))
 # View results
-kardl_model2$properLag
+kardl_model2$lagInfo
+
+
+## ----model-user-defined-summary-----------------------------------------------
+# Display model summary
+summary(kardl_model2)
 
 
 ## ----model-all-vars-----------------------------------------------------------
 
 kardl_set(data=imf_example_data)
-kardl(model =  CPI ~ . + deterministic(covid), mode = "grid")
+kardl(formula =  CPI ~ . + deterministic(covid), mode = "grid")
 
 
 ## ----lag-criteria-------------------------------------------------------------
@@ -60,7 +68,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 # Convert LagCriteria to a data frame
-LagCriteria <- as.data.frame(kardl_model[["LagCriteria"]])
+LagCriteria <- as.data.frame(kardl_model$lagInfo$LagCriteria)
 colnames(LagCriteria) <- c("lag", "AIC", "BIC", "AICc", "HQ")
 LagCriteria <- LagCriteria %>% mutate(across(c(AIC, BIC, HQ), as.numeric))
 
@@ -85,6 +93,11 @@ ggplot(LagCriteria_long, aes(x = lag, y = Value, color = Criteria, group = Crite
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
+## ----ecm-estimation-----------------------------------------------------------
+ecm_model <- ecm(data=imf_example_data, formula = MyFormula, maxlag = 4, mode = "grid_custom", case = 3, signif_level = "0.05")
+# View results
+summary(ecm_model)
+
 ## ----long-run-----------------------------------------------------------------
 
 # Long-run coefficients
@@ -92,72 +105,80 @@ mylong <- kardl_longrun(kardl_model)
 mylong
 
 
+## ----long-run-summary---------------------------------------------------------
+# Summary of long-run coefficients
+summary(mylong)
+
+
 ## ----asymmetry-test-----------------------------------------------------------
 
-ast <- imf_example_data %>% kardl(CPI ~ ER + PPI + asym(ER + PPI) + deterministic(covid) + trend, mode = c(1, 2, 3, 0, 1)) %>% asymmetrytest()
+ast <- imf_example_data %>% kardl(CPI ~ ER + PPI + asymmetric(ER + PPI) + deterministic(covid) + trend, mode = c(1, 2, 3, 0, 1)) %>% symmetrytest()
 ast
-# View long-run hypotheses
-ast$Lhypotheses
-# Detailed results
+
+## ----asymmetry-test-summary---------------------------------------------------
+# Summary of symmetry test
 summary(ast)
 
 
 ## ----pssf---------------------------------------------------------------------
 
 A <- kardl_model %>% pssf(case = 3, signif_level = "0.05")
-cat(paste0("The F statistic = ", A$statistic, " where k = ", A$k, "."))
-cat(paste0("\nWe found '", A$Cont, "' at ", A$siglvl, "."))
-A$criticalValues
+A
+
+
+## ----pssf-summary-------------------------------------------------------------
+
 summary(A)
 
 
 ## ----psst---------------------------------------------------------------------
 
 A <- kardl_model %>% psst(case = 3, signif_level = "0.05")
-cat(paste0("The t statistic = ", A$statistic, " where k = ", A$k, "."))
-cat(paste0("\nWe found '", A$Cont, "' at ", A$siglvl, "."))
-A$criticalValues
-summary(A)
+A
 
+
+## ----psst-summary-------------------------------------------------------------
+summary(A)
 
 ## ----narayan------------------------------------------------------------------
 
 A <- kardl_model %>% narayan(case = 3, signif_level = "0.05")
-cat(paste0("The F statistic = ", A$statistic, " where k = ", A$k, "."))
-cat(paste0("\nWe found '", A$Cont, "' at ", A$siglvl, "."))
-A$criticalValues
+A
+
+
+## ----narayan-summary----------------------------------------------------------
 summary(A)
 
 
-## ----banerjee-----------------------------------------------------------------
-
-A <- kardl_model %>% banerjee(signif_level = "0.05")
-cat(paste0("The ECM parameter = ", A$coef, ", k = ", A$k, ", t statistic = ", A$statistic, "."))
-cat(paste0("\nWe found '", A$Cont, "' at ", A$siglvl, "."))
-A$criticalValues
-summary(A)
-
-
-## ----recmt--------------------------------------------------------------------
-
-recmt_model <- imf_example_data %>% recmt(MyFormula, mode = "grid_custom", case = 3)
-recmt_model
-# View results
-summary(recmt_model)
+## ----dynamic-multipliers------------------------------------------------------
+multipliers <- kardl_model %>% mplier()
+# View multipliers of the model
+head(multipliers$mpsi)
+# View long-run multipliers
+head(multipliers$omega)
+# View short-run multipliers
+head(multipliers$lambda)
 
 
-## ----arch-test----------------------------------------------------------------
+## ----plot-multipliers---------------------------------------------------------
+plot(multipliers, variables = c("ER", "PPI"))
 
-arch_result <- archtest(kardl_model$finalModel$model$residuals, q = 2)
-summary(arch_result)
 
+## ----bootstrap-multipliers----------------------------------------------------
+bootstrap_results <- kardl_model %>%   bootstrap(horizon = 12,  replications= 10)
+# View bootstrap summary
+summary(bootstrap_results)
+
+
+## ----plot-bootstrap-multipliers-----------------------------------------------
+plot(bootstrap_results, variables = "ER")
 
 ## ----asym-custom--------------------------------------------------------------
 
 # Set custom prefixes and suffixes
 kardl_reset()
 kardl_set(AsymPrefix = c("asyP_", "asyN_"), AsymSuffix = c("_PP", "_NN"))
-kardl_custom <- kardl(data=imf_example_data, MyFormula, mode = "grid_custom")
-kardl_custom$properLag
+kardl_custom <- kardl(data=imf_example_data, MyFormula)
+kardl_custom
 
 
