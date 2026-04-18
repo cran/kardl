@@ -1,7 +1,7 @@
 Package: kardl
 Type: Package
 Title: Make Symmetric and Asymmetric ARDL Estimations
-Version: 1.1.0
+Version: 1.3.0
 Authors@R: 
   c(person(given = "Huseyin",
            family = "Karamelikli",
@@ -20,7 +20,7 @@ Description: Implements estimation procedures for Autoregressive Distributed Lag
     The package supports simultaneous modeling of symmetric and asymmetric regressors, 
     flexible treatment of short-run and long-run asymmetries, and automated equation handling. 
     It includes several cointegration testing approaches such as the Pesaran-Shin-Smith F 
-    and t bounds tests, and the restricted ECM test. 
+    and t bounds tests, and narayan test. 
     Methodological foundations are provided in Pesaran, Shin, and Smith (2001) 
     <doi:10.1016/S0304-4076(01)00049-5> and Shin, Yu, and Greenwood-Nimmo (2014, ISBN:9780123855079).
 License: GPL-3
@@ -29,10 +29,10 @@ LazyData: true
 Imports: stats, msm, lmtest, nlWaldTest, car, ggplot2, utils
 RoxygenNote: 7.3.3
 Suggests: knitr, rmarkdown, officer, flextable, equatags, magrittr,
-        rlang, tidyr, dplyr, testthat (>= 3.0.0)
+        rlang, tidyr, dplyr, MASS, testthat (>= 3.0.0)
 NeedsCompilation: no
 VignetteBuilder: knitr
-Packaged: 2026-03-09 10:29:54 UTC; huseyin
+Packaged: 2026-04-17 11:09:12 UTC; huseyin
 Author: Huseyin Karamelikli [aut, cre] (ORCID:
     <https://orcid.org/0000-0001-7622-0972>),
   Huseyin Utku Demir [aut] (ORCID:
@@ -40,4 +40,4 @@ Author: Huseyin Karamelikli [aut, cre] (ORCID:
 Depends: R (>= 3.5.0)
 Config/testthat/edition: 3
 Repository: CRAN
-Date/Publication: 2026-03-09 11:00:02 UTC
+Date/Publication: 2026-04-18 16:40:35 UTC

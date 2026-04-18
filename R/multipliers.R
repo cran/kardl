@@ -1,39 +1,75 @@
-
-
-#' Calculating multipliers of estimated model
+#' Compute Dynamic Multipliers for kardl Models
 #'
 #'
-#' By running \code{m<-mplier(kardl_model)}, the object \code{m$mpsi} contains the final multiplier values, \code{m$omega} holds the omega values, and  \code{m$lambda} returns the Lambda values of the model.
+#' Computes cumulative dynamic multipliers based on a model estimated using the
+#' \code{kardl} framework. The function supports different configurations of
+#' linearity and asymmetry in both short-run and long-run dynamics.
 #'
-#' @param kmodel  The model produced by kardl function. This is the model object from which the dynamic multipliers will be calculated. The function expects an object of class \code{kardl_lm}, which is the standard output class for linear models estimated using the kardl package. If the input object does not inherit from this class, the function will throw an error, ensuring that it operates on compatible model objects.
-#' The function extracts necessary information from the model, such as coefficients, lag structure, and variable names, to compute the dynamic multipliers. It calculates the short-run coefficients, Lambda values, and omega values based on the model's parameters and lag structure. The output includes a matrix of dynamic multipliers (mpsi), which can be used for further analysis or visualization.
-#' @param horizon  The horizon over which multipliers will be computed. This parameter defines the time frame for the analysis, allowing users to specify how many periods into the future they want to calculate the multipliers for. For example, setting \code{horizon = 40} will compute the multipliers for 40 periods ahead. The function uses this horizon to determine the number of rows in the output matrix of multipliers and to structure the calculations accordingly.
-#' @param minProb  The minimum p-value threshold for including coefficients in the multipliers calculation. Coefficients with p-values above this threshold will be set to zero in the multipliers calculation. This parameter allows users to control the inclusion of coefficients based on their statistical significance. Setting a threshold can help focus the analysis on more relevant variables, but it may also exclude potentially important effects if set too stringently. The default value is \code{0}, which means that all coefficients will be included regardless of their p-values.
-#'
-#' @return
-#' A list containing the following elements:
+#' The asymmetry structure is determined internally:
 #' \itemize{
-#'  \item \strong{mpsi}: A matrix of dynamic multipliers for each
-#'  variable across the specified horizon. The first column typically represents the time horizon (e.g., 0 to 40), while the subsequent columns contain the multiplier values for each variable.
-#'  \item \strong{omega}: A vector of omega values calculated based on the  model's parameters and lag structure. These values are used in the calculation of the dynamic multipliers and provide insight into the persistence of effects over time.
-#'  \item \strong{lambda}: A matrix of Lambda values that represent the short run coefficients and their transformations based on the model's parameters. These values are essential for understanding the immediate effects of changes in the independent variables on the dependent variable.
-#'  \item \strong{horizon}: The horizon over which the multipliers were computed, as specified in the function's input. This value indicates the time frame for which the dynamic multipliers are relevant and can be used for interpretation and analysis of the results.
-#'  \item \strong{model}: The original model object that was passed to the function. This allows users to reference the model used for the calculations and can be useful for further analysis or validation of the results.
-#'  }
-#' @export
-#' @import stats msm ggplot2
-#' @seealso    \code{\link{bootstrap}}
+#'   \item Variables in \code{extractedInfo$ASvars} are treated as asymmetric in the short run.
+#'   \item Variables in \code{extractedInfo$ALvars} are treated as asymmetric in the long run.
+#' }
+#'
+#' This allows four possible configurations:
+#' \itemize{
+#'   \item \strong{LL}: Linear in both short-run and long-run
+#'   \item \strong{NN}: Asymmetric in both short-run and long-run
+#'   \item \strong{SA}: Short-run linear, long-run asymmetric
+#'   \item \strong{AS}: Short-run asymmetric, long-run linear
+#' }
+#'
+#' When a component is linear, the same coefficient path is used for both positive
+#' and negative changes. When asymmetric, separate positive and negative effects
+#' are computed.
+#'
+#' @param kmodel An object of class \code{kardl_lm} produced by the \code{kardl} function.
+#' @param horizon Integer. Number of periods ahead for which dynamic multipliers are computed.
+#' @param minProb Numeric. Threshold for coefficient significance. Coefficients with
+#' p-values greater than this value are set to zero.
+#'
+#' @return A list of class \code{kardl_mplier} containing:
+#' \itemize{
+#'   \item \strong{mpsi}: Matrix of cumulative dynamic multipliers.
+#'   \item \strong{omega}: Vector of omega coefficients (persistence structure).
+#'   \item \strong{lambda}: Matrix of short-run dynamic coefficients.
+#'   \item \strong{horizon}: Forecast horizon used.
+#'   \item \strong{vars}: Extracted model variable structure.
+#' }
+#'
 #' @details
+#'
 #' The \code{mplier} function computes dynamic multipliers based on the coefficients and lag structure of a model estimated using the \code{kardl} package. The function extracts necessary
 #' information from the model, such as coefficients, lag structure, and variable names, to compute the dynamic multipliers. It calculates the short-run coefficients, Lambda values, and omega values based on the model's parameters and lag structure. The output includes a matrix of dynamic multipliers (mpsi), which can be used for further analysis or visualization.
 #' The dynamic multipliers provide insight into how changes in the independent variables affect the dependent variable over time, allowing for a deeper understanding of the relationships captured by the model. The function also allows users to set a minimum p-value threshold for including coefficients in the calculation, providing flexibility in focusing on statistically significant effects.
-#' The function is designed to work specifically with models estimated using the \code{kardl} package, and it ensures that the input model is of the correct class before proceeding with the calculations. The resulting multipliers can be used for various applications, including forecasting, policy analysis, and understanding the dynamic relationships between variables in time series data.
+#'
+#' The function constructs dynamic multipliers based on the recursive relationship:
 #'
 #' \deqn{
-#' {{\psi_{h}^{+} = {\sum_{i = 0}^{h}\frac{\partial y_{t + i}}{\partial x_{t}^{+}}}} ; {\psi_{h}^{-} = {\sum_{i = 0}^{h}\frac{\partial y_{t + i}}{\partial x_{t}^{-}}}}}
+#' \psi_{h}^{+} = \sum_{i=0}^{h} \frac{\partial y_{t+i}}{\partial x_{t}^{+}}, \quad
+#' \psi_{h}^{-} = \sum_{i=0}^{h} \frac{\partial y_{t+i}}{\partial x_{t}^{-}}
 #' }
-#' The above equation represents the cumulative dynamic multipliers for positive and negative changes in an independent variable (x) on the dependent variable (y) over a specified horizon (h). The multipliers are calculated as the sum of the partial derivatives of the dependent variable with respect to the positive and negative changes in the independent variable across the time horizon. These multipliers provide insight into how changes in the independent variable affect the dependent variable over time, allowing for a deeper understanding of the relationships captured by the model.
 #'
+#' where \eqn{\psi_h^{+}} and \eqn{\psi_h^{-}} represent cumulative responses to
+#' positive and negative shocks.
+#'
+#' The recursion is defined as:
+#'
+#' \deqn{
+#' \psi_h = \lambda_h + \sum_{j=1}^{p} \omega_j \psi_{h-j}
+#' }
+#'
+#' where \eqn{\lambda_h} captures short-run effects and \eqn{\omega_j} reflects
+#' persistence through lagged dependent variables.
+#'
+#' When asymmetry is present, positive and negative shocks are propagated separately.
+#' Otherwise, the same dynamic path is used.
+#'
+#' @seealso \code{\link{bootstrap}}
+#'
+#' @import stats msm
+#'
+#' @export
 #'
 #' @examples
 #'
@@ -42,24 +78,47 @@
 #' # the kardl function, calculating the multipliers, and visualizing the results using both
 #' # base R plotting and ggplot2.
 #'
-#'  kardl_model<-kardl(imf_example_data, CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-#'  mode=c(1,2,3,0))
+#'  # Calculating dynamic multipliers for a linear model in short and long run (NN)
+#'  kardl_model<-kardl(imf_example_data, CPI~ER )
+#'  m<-mplier(kardl_model,40)
+#'  head(m$mpsi)
+#'  plot(m)
+#'
+#'  # Calculating dynamic multipliers for a model with
+#'  # Short-run linear, long-run asymmetric (SA)
+#'  kardl_model<-kardl(imf_example_data, CPI~lasym(ER) )
+#'  m<-mplier(kardl_model,40)
+#'  head(m$mpsi)
+#'  plot(m)
+#'
+#'  # Calculating dynamic multipliers for a model with
+#'  # Short-run asymmetric, long-run linear (AS)
+#'  kardl_model<-kardl(imf_example_data, CPI~sasym(ER) )
+#'  m<-mplier(kardl_model,40)
+#'  head(m$mpsi)
+#'  plot(m)
+#'
+#'  # Calculating dynamic multipliers for a model with
+#'  # asymmetric effects in both short and long run (NN)
+#'  kardl_model<-kardl(imf_example_data, CPI~asym(ER) )
+#'  m<-mplier(kardl_model,40)
+#'  head(m$mpsi)
+#'  plot(m)
+#'
+#'  # The mpsi matrix contains the cumulative dynamic multipliers for each variable and time horizon.
+#'  # The omega vector contains the persistence structure of the model,
+#'  # while the lambda matrix contains the short-run dynamic coefficients.
+#'  # You can inspect these components to understand the dynamics captured by the model.
+#'  kardl_model<-kardl(imf_example_data, CPI~PPI+asym(ER) )
 #'  m<-mplier(kardl_model,40)
 #'  head(m$mpsi)
 #'  head(m$omega)
 #'  head(m$lambda)
 #'
-#'  # Displaying the summary of the multipliers object
-#'  summary(m)
-#'
-#'  # Visualize the dynamic multipliers
-#'
-#' plot(m)
-#'
 #'  # For plotting specific variables, you can specify them in the plot function. For example,
-#'  # to plot the multipliers for the variable "ER":
+#'  # to plot the multipliers for the variable "PPI":
 #'
-#'  plot(m, variable = "ER")
+#'  plot(m, variable = "PPI")
 #'
 #'
 mplier<-function(kmodel,horizon=80,minProb=0){
@@ -68,160 +127,171 @@ mplier<-function(kmodel,horizon=80,minProb=0){
 
     stop("Input object must be of class 'kardl_lm'.",call. = FALSE)
   }
-   var_names <-names(coefficients(kmodel))
-  properLag<-kmodel$lagInfo$OptLag
-  h<-horizon +1
-  vars<-kmodel$extractedInfo
+  var_names <- names(coefficients(kmodel))
+  properLag <- kmodel$lagInfo$OptLag
+  h <- horizon + 1
+  vars <- kmodel$extractedInfo
 
-  depvar<- replace_lag_var(.kardl_Settings_env$LongCoef ,vars$dependentVar,1)
-  a_index <- which(var_names ==depvar) # Index the first lagged dependent in the matrix
+  depvar <- replace_lag_var(.kardl_Settings_env$LongCoef, vars$dependentVar, 1)
+  a_index <- which(var_names == depvar)
 
- my_alpha_lags <- properLag[[vars$dependentVar]]
-  my_alpha_index<-which(var_names %in% unlist( lapply(1:my_alpha_lags,function(i){
-    replace_lag_var(.kardl_Settings_env$ShortCoef ,vars$dependentVar,i)
-    })))
-
-
+  gamma__lags <- properLag[[vars$dependentVar]]
+  gamma__index <- which(var_names %in% unlist(lapply(1:gamma__lags, function(i) {
+    replace_lag_var(.kardl_Settings_env$ShortCoef, vars$dependentVar, i)
+  })))
 
   model_params <- kmodel$coefficients
 
-  if(minProb > 0){
-    tempModel<-summary(kmodel)$coefficients
-    for (v in 1:nrow(tempModel)) {
-      if(tempModel[v,4]>minProb){
-        model_params[v]<-0
+  if (minProb > 0) {
+    tempModel <- summary(kmodel)$coefficients
+    for (v in seq_len(nrow(tempModel))) {
+      if (tempModel[v, 4] > minProb) {
+        model_params[v] <- 0
       }
     }
   }
 
-  my_theta <- model_params[a_index] # alpha is reserved functipn in R
+  my_theta <- model_params[a_index]
+  gamma_ <- model_params[gamma__index]
+  p <- length(gamma__index)
 
-  my_alpha <- model_params[my_alpha_index] # beta1
-
-
-  p<-length(my_alpha_index) # the length of the short-run lags of the dependent variable
-
-  my_omega<-numeric(p)
-  my_omega[1] = 1 + model_params[a_index] + my_alpha[1]
+  omega_ <- numeric(p + 1)
+  omega_[1] <- 1 + model_params[a_index] + gamma_[1]
   if (p >= 2) {
     for (i in 2:p) {
-      my_omega[i] = my_alpha[i] - my_alpha[i-1]
+      omega_[i] <- gamma_[i] - gamma_[i - 1]
     }
   }
-  my_omega[p+1] = -my_alpha[p]
+  omega_[p + 1] <- -gamma_[p]
 
-  ColNum<-length(vars$independentVars)
+  ColNum <- length(vars$independentVars)
 
-  ColName<- ColName_F<-c()
-  for(x in vars$independentVars){
-    posName<-paste0(.kardl_Settings_env$AsymPrefix[1],x,.kardl_Settings_env$AsymSuffix[1]) ### posName<- paste0(x,".POS")
-    negName<-paste0(.kardl_Settings_env$AsymPrefix[2],x,.kardl_Settings_env$AsymSuffix[2]) ### negName<- paste0(x,".NEG")
-    diff_name<-paste0(x,"_dif")
-    ColName_F<- c(ColName_F,posName,negName,diff_name)
-    ColName<- c(ColName,posName,negName)
+  ColName <- ColName_F <- c()
+  for (x in vars$independentVars) {
+    posName <- paste0(.kardl_Settings_env$AsymPrefix[1], x, .kardl_Settings_env$AsymSuffix[1])
+    negName <- paste0(.kardl_Settings_env$AsymPrefix[2], x, .kardl_Settings_env$AsymSuffix[2])
+    diff_name <- paste0(x, "_dif")
+    ColName_F <- c(ColName_F, posName, negName, diff_name)
+    ColName <- c(ColName, posName, negName)
   }
 
+  shortRun_coefs <- matrix(0, nrow = h, ncol = ColNum * 2)
+  lambda_mtx <- matrix(0, nrow = h, ncol = ColNum * 2)
+  mpsi_mtx <- matrix(0, nrow = h, ncol = ColNum * 2)
+  colnames(shortRun_coefs) <- colnames(lambda_mtx) <- colnames(mpsi_mtx) <- ColName
 
-  shortRun_coefs<-matrix(0, nrow = h, ncol = ColNum*2)
-  lambda_mtx<-matrix(0, nrow = h, ncol = ColNum*2)
-  mpsi_mtx<-matrix(0, nrow = h, ncol = ColNum*2)
-  colnames(shortRun_coefs)<-colnames(lambda_mtx)<-colnames(mpsi_mtx)<-ColName
+  for (v in seq_len(ColNum)) {
 
-  for (v in 1:ColNum) {
-    mtx_varMultiplier<-vars$independentVars[v]
-    mtx_POS<-mtx_NEG<-mtx_varMultiplier
-    if(mtx_varMultiplier %in% vars$ALvars){
-      mtx_POS <-paste0(.kardl_Settings_env$AsymPrefix[1],mtx_varMultiplier,.kardl_Settings_env$AsymSuffix[1]) ### mtx_POS<- paste0(mtx_varMultiplier,".POS")
-     mtx_NEG <-paste0(.kardl_Settings_env$AsymPrefix[2],mtx_varMultiplier,.kardl_Settings_env$AsymSuffix[2]) ### mtx_NEG<- paste0(mtx_varMultiplier,".NEG")
-      # mtx_POS<-paste0(vars$AsymPrefix[1],mtx_varMultiplier,vars$AsymSuffix[1])
-     # mtx_NEG<-paste0(vars$AsymPrefix[2],mtx_varMultiplier,vars$AsymSuffix[2])
-     mtx_index_POS<-which(var_names == replace_lag_var(.kardl_Settings_env$LongCoef ,mtx_POS,1))
-      mtx_index_NEG<-which(var_names == replace_lag_var(.kardl_Settings_env$LongCoef ,mtx_NEG,1))
+    x <- vars$independentVars[v]
 
-     # mtx_index_POS<-which(var_names == paste0("L1.",mtx_POS))
-     # mtx_index_NEG<-which(var_names == paste0("L1.",mtx_NEG))
-    }else{
-      mtx_index_NEG<-mtx_index_POS <- which(var_names == replace_lag_var(.kardl_Settings_env$LongCoef ,mtx_varMultiplier,1))
-                                            #paste0("L1.", mtx_varMultiplier ))
-    }
-    mtx_beta_index_p <- which(var_names %in% unlist( lapply(0:properLag[mtx_POS],function(i){
-      replace_lag_var(.kardl_Settings_env$ShortCoef ,mtx_POS,i)
-      # paste0("L",i,".d.",mtx_POS)
+    posName <- paste0(.kardl_Settings_env$AsymPrefix[1], x, .kardl_Settings_env$AsymSuffix[1])
+    negName <- paste0(.kardl_Settings_env$AsymPrefix[2], x, .kardl_Settings_env$AsymSuffix[2])
 
-      })))
-    mtx_beta_index_n <- which(var_names %in% unlist( lapply(0:properLag[mtx_NEG],function(i){
-      replace_lag_var(.kardl_Settings_env$ShortCoef ,mtx_NEG,i)
-      #paste0("L",i,".d.",mtx_NEG)
-      })))
+    # decide short-run / long-run asymmetry
+    sr_asym <- x %in% vars$ASvars
+    lr_asym <- x %in% vars$ALvars
 
-    mtx_beta_POS<- model_params[mtx_beta_index_p]
-    mtx_beta_NEG<-model_params[mtx_beta_index_n] #beta2 beta3
+    ## names used in long-run part
+    lr_pos <- if (lr_asym) posName else x
+    lr_neg <- if (lr_asym) negName else x
 
-    tempColNo<-(v-1)*2+1
-    shortRun_coefs[1:length(mtx_beta_POS),tempColNo]<-mtx_beta_POS
-    shortRun_coefs[1:length(mtx_beta_NEG),tempColNo+1]<-mtx_beta_NEG
-    lambda_mtx[1,tempColNo]<-shortRun_coefs[1,tempColNo]
-    lambda_mtx[1,tempColNo+1]<-shortRun_coefs[1,tempColNo+1]
-    lambda_mtx[2,tempColNo]<- model_params[mtx_index_POS] - shortRun_coefs[1,tempColNo]+shortRun_coefs[2,tempColNo]
-    lambda_mtx[2,tempColNo+1]<-model_params[mtx_index_NEG] - shortRun_coefs[1,tempColNo+1]+shortRun_coefs[2,tempColNo+1]
-    my_beta_lags_p <-  properLag[[mtx_POS]]
-    if(my_beta_lags_p>1){
+    ## names used in short-run part
+    sr_pos <- if (sr_asym) posName else x
+    sr_neg <- if (sr_asym) negName else x
+
+    ## long-run coefficient indices
+    mtx_index_POS <- which(var_names == replace_lag_var(.kardl_Settings_env$LongCoef, lr_pos, 1))
+    mtx_index_NEG <- which(var_names == replace_lag_var(.kardl_Settings_env$LongCoef, lr_neg, 1))
+
+    ## short-run lag indices
+    mtx_beta_index_p <- which(var_names %in% unlist(lapply(0:properLag[[sr_pos]], function(i) {
+      replace_lag_var(.kardl_Settings_env$ShortCoef, sr_pos, i)
+    })))
+
+    mtx_beta_index_n <- which(var_names %in% unlist(lapply(0:properLag[[sr_neg]], function(i) {
+      replace_lag_var(.kardl_Settings_env$ShortCoef, sr_neg, i)
+    })))
+
+    mtx_beta_POS <- model_params[mtx_beta_index_p]
+    mtx_beta_NEG <- model_params[mtx_beta_index_n]
+
+    tempColNo <- (v - 1) * 2 + 1
+
+    shortRun_coefs[seq_along(mtx_beta_POS), tempColNo] <- mtx_beta_POS
+    shortRun_coefs[seq_along(mtx_beta_NEG), tempColNo + 1] <- mtx_beta_NEG
+
+    lambda_mtx[1, tempColNo] <- shortRun_coefs[1, tempColNo]
+    lambda_mtx[1, tempColNo + 1] <- shortRun_coefs[1, tempColNo + 1]
+
+    lambda_mtx[2, tempColNo] <-
+      model_params[mtx_index_POS] - shortRun_coefs[1, tempColNo] + shortRun_coefs[2, tempColNo]
+
+    lambda_mtx[2, tempColNo + 1] <-
+      model_params[mtx_index_NEG] - shortRun_coefs[1, tempColNo + 1] + shortRun_coefs[2, tempColNo + 1]
+
+    my_beta_lags_p <- properLag[[sr_pos]]
+    if (my_beta_lags_p > 1) {
       for (i in 2:length(mtx_beta_POS)) {
-        lambda_mtx[i+1,tempColNo] <- shortRun_coefs[i+1,tempColNo] - shortRun_coefs[i ,tempColNo]
+        lambda_mtx[i + 1, tempColNo] <- shortRun_coefs[i + 1, tempColNo] - shortRun_coefs[i, tempColNo]
       }
     }
-    if(my_beta_lags_p>0){
-      lambda_mtx[my_beta_lags_p+2,tempColNo]<- -shortRun_coefs[my_beta_lags_p+1,tempColNo]
+    if (my_beta_lags_p > 0) {
+      lambda_mtx[my_beta_lags_p + 2, tempColNo] <- -shortRun_coefs[my_beta_lags_p + 1, tempColNo]
     }
 
-    if( mtx_POS==mtx_NEG){
-      lambda_mtx[,tempColNo+1]<-lambda_mtx[,tempColNo]
-    }else{
-      my_beta_lags_n <-  properLag[[mtx_NEG]]
-      if(my_beta_lags_n>1){
+    ## if short-run is linear, copy lambda from POS to NEG
+    if (!sr_asym) {
+      lambda_mtx[, tempColNo + 1] <- lambda_mtx[, tempColNo]
+    } else {
+      my_beta_lags_n <- properLag[[sr_neg]]
+      if (my_beta_lags_n > 1) {
         for (i in 2:length(mtx_beta_NEG)) {
-          lambda_mtx[i+1,tempColNo+1] <- shortRun_coefs[i+1,tempColNo+1] - shortRun_coefs[i,tempColNo+1 ]
+          lambda_mtx[i + 1, tempColNo + 1] <- shortRun_coefs[i + 1, tempColNo + 1] - shortRun_coefs[i, tempColNo + 1]
         }
       }
-      if(my_beta_lags_n>0){
-        lambda_mtx[my_beta_lags_n+2,tempColNo+1]<- -shortRun_coefs[my_beta_lags_n+1,tempColNo+1]
+      if (my_beta_lags_n > 0) {
+        lambda_mtx[my_beta_lags_n + 2, tempColNo + 1] <- -shortRun_coefs[my_beta_lags_n + 1, tempColNo + 1]
       }
+    }
+
+    ## if long-run is linear, force same long-run effect in lambda[2]
+    if (!lr_asym) {
+      lambda_mtx[2, tempColNo + 1] <- lambda_mtx[2, tempColNo]
     }
   }
 
-  mpsi_mtx[1,]<-lambda_mtx[1,]
-  p2<-p+1
+  mpsi_mtx[1, ] <- lambda_mtx[1, ]
+  p2 <- p + 1
+
   for (v in 2:h) {
-    n_say<-ifelse(v>p2,p2,v-1)
-    g_say<-ifelse(v-p2<=0,1,v-p2)
-    n_omega <- my_omega[1:n_say]
-    mpsi_mtx[v,] <-lambda_mtx[v,] + n_omega %*% mpsi_mtx[(v-1):g_say,]
-
-  }
-  # even_columns <- seq(2, ncol(mpsi_mtx), by = 2)
-  # mpsi_mtx[, even_columns] <- mpsi_mtx[, even_columns] * -1
-  mpsi_mtx2 <-apply(mpsi_mtx, 2, cumsum)
-
-  mpsi<-matrix(0, nrow = h, ncol = ColNum*3)
-  for (v in 1:ColNum) {
-    colNo2<-v*2-1
-    colNo3<-v*3-2
-    mpsi[,colNo3]<-mpsi_mtx2[,colNo2]
-    mpsi[,colNo3+1]<--mpsi_mtx2[,colNo2+1]
-    mpsi[,colNo3+2]<-mpsi_mtx2[,colNo2]-mpsi_mtx2[,colNo2+1]
+    n_say <- ifelse(v > p2, p2, v - 1)
+    g_say <- ifelse(v - p2 <= 0, 1, v - p2)
+    n_omega <- omega_[1:n_say]
+    mpsi_mtx[v, ] <- lambda_mtx[v, ] + n_omega %*% mpsi_mtx[(v - 1):g_say, ]
   }
 
-  mpsi<-cbind(0:horizon,mpsi)
-  colnames(mpsi)<- c("h",ColName_F)
+  mpsi_mtx2 <- apply(mpsi_mtx, 2, cumsum)
+
+  mpsi <- matrix(0, nrow = h, ncol = ColNum * 3)
+  for (v in seq_len(ColNum)) {
+    colNo2 <- v * 2 - 1
+    colNo3 <- v * 3 - 2
+    mpsi[, colNo3] <- mpsi_mtx2[, colNo2]
+    mpsi[, colNo3 + 1] <- -mpsi_mtx2[, colNo2 + 1]
+    mpsi[, colNo3 + 2] <- mpsi_mtx2[, colNo2] - mpsi_mtx2[, colNo2 + 1]
+  }
+
+  mpsi <- cbind(0:horizon, mpsi)
+  colnames(mpsi) <- c("h", ColName_F)
 
   structure(
     list(
       call = match.call(),
       mpsi = mpsi,
-      omega = my_omega,
+      omega = omega_,
       lambda = lambda_mtx,
       horizon = horizon,
-      vars=vars
+      vars = vars
     ),
     class = "kardl_mplier"
   )
@@ -444,7 +514,7 @@ bootstrap<-function(kmodel,
       }
       dynNames<-colnames(mpsi)
       mpsi<-cbind(mpsi,upperCI,lowerCI)
-      colnames(mpsi)<-c(dynNames,paste0(variable,c("_uCI","_lCI")))
+      colnames(mpsi)<-c(dynNames,paste0(variable,c("_CI_upper","_CI_lower")))
 
     }
   }
@@ -468,8 +538,8 @@ mplierggplot<-function(mpsi,vars, varName  ){
   x_n <- paste0(.kardl_Settings_env$AsymPrefix[2], varName, .kardl_Settings_env$AsymSuffix[2]) # paste0(varName,".NEG")
 
   x_diff<-paste0(varName,"_dif")
-  upperCI<-paste0(varName,"_uCI")
-  lowerCI<-paste0(varName,"_lCI")
+  upperCI<-paste0(varName,"_CI_upper")
+  lowerCI<-paste0(varName,"_CI_lower")
 
   p<- ggplot(mpsi, aes(x=.data$h)) +
     geom_line(aes(y = .data[[x_p]], color = "Positive")) +
@@ -478,35 +548,39 @@ mplierggplot<-function(mpsi,vars, varName  ){
     # geom_line(aes(y=!!rlang::sym(x_n),color="Negative"))
 
 
-  myBreaks<- c( "Positive", "Negative")
-  labels <- c(
+  myBreaks<- c("Difference", "Positive", "Negative")
+  labels <- c("Difference" = "Difference",
     "Positive" = "Positive Change",
     "Negative" = "Negative Change")
   values <- c( # Specify colors for each legend item
+    "Difference" = alpha("black",1),
     "Positive" =  alpha("blue",1),
     "Negative" =  alpha("red",1) )
-  color<-c("blue", "red")
-  fill<-c("transparent","transparent")
-  linetype <-c(1,1) # c("dashed", "solid","solid","solid") ,
-  size<-c(8,8)  # Increases the width of the legend key
+  color<-c("black","blue", "red")
+  fill<-c("transparent", "transparent","transparent")
+  linetype <-c(2,1,1) # c("dashed", "solid","solid","solid") ,
+  size<-c(8,8,8)  # Increases the width of the legend key
 
   if(upperCI  %in% colnames(mpsi) ){ # !is.null(mpsi[[upperCI]])){
 
     # p <- p+    geom_line(aes(y=!!rlang::sym(x_diff),color="Difference"),linetype = "dashed") +
     #   geom_ribbon(aes(ymin = !!rlang::sym(lowerCI), ymax = !!rlang::sym(upperCI),color="CI") ,fill=  "blue"  ,   alpha = 0.2 )
-     p <- p+    geom_line(aes(y = .data[[x_diff]], color = "Difference"), linetype = "dashed") +
+     p <- p+
+       # geom_line(aes(y = .data[[x_diff]], color = "Difference"), linetype = "dashed") +
       geom_ribbon(aes(ymin = .data[[lowerCI]], ymax = .data[[upperCI]], color = "CI"), fill = "blue", alpha = 0.2)
 
-    myBreaks<- c("Difference",myBreaks, "CI")
-    labels <- c("Difference" = "Asymmetry", labels  , "CI" = "Confidence Interval")
-    values <- c("Difference" = alpha("black",1),  values  ,       "CI" =  alpha("blue",0.2) )
-    color<-c("black",color,"transparent")
-    fill<-c("transparent", fill,"blue")
-    linetype <-c(2,linetype,0)
-    size<-c( 8,size,8)
+    myBreaks<- c(myBreaks, "CI")
+    labels["Difference"]<- "Asymmetry"
+    labels <- c( labels  , "CI" = "Confidence Interval")
+    values <- c(  values  ,       "CI" =  alpha("blue",0.2) )
+    color<-c(color,"transparent")
+    fill<-c(fill,"blue")
+    linetype <-c(linetype,0)
+    size<-c( size,8)
   }
 
-  p <- p+     scale_colour_manual(name="",
+  p <- p+    geom_line(aes(y = .data[[x_diff]], color = "Difference"), linetype = "dashed") +
+    scale_colour_manual(name="",
                                   breaks =myBreaks,  # Include "Confidence Interval" in breaks
                                   labels = labels,  # Include label for "Confidence Interval"
                                   values = values

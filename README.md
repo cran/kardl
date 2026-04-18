@@ -1,4 +1,10 @@
 # KARDL <img src="man/figures/KARDL.png" align="right"/>
+[![R-CMD-check](https://github.com/karamelikli/kardl/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/karamelikli/kardl/actions/workflows/R-CMD-check.yaml)
+[![GitHub version](https://img.shields.io/github/v/release/karamelikli/kardl)](https://github.com/karamelikli/kardl/releases)
+[![License: GPL-3](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://opensource.org/licenses/GPL-3.0)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/kardl)](https://cran.r-project.org/package=kardl)
+[![Lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+
 
 ## Introduction
 
@@ -173,7 +179,7 @@ ggplot(LagCriteria_long, aes(x = lag, y = Value, color = Criteria, group = Crite
 
 The `ecm()` function estimates a Restricted ECM for cointegration testing. We specify the same formula and lag structure as in the ARDL model.
 ```r 
-ecm_model <- ecm(data=imf_example_data, formula = MyFormula, maxlag = 4, mode = "grid_custom", case = 3, signif_level = "0.05")
+ecm_model <- ecm(data=imf_example_data, formula = MyFormula, maxlag = 4, mode = "grid_custom")
 # View results
 summary(ecm_model)
 ```
@@ -360,7 +366,7 @@ kardl_custom
 
 - **`narayan(model, case, signif_level)`**: Conducts the Narayan test for cointegration, optimized for small samples (cases 2–5).
 
-- **`ecm(data, model, maxlag, mode, case, signif_level, ...)`**: Conducts the Restricted ECM test for cointegration, with similar parameters to `kardl()` and case/significance level options.
+- **`ecm(data, model, maxlag, mode, ...)`**: Conducts the Restricted ECM test for cointegration, with similar parameters to `kardl()` and case/significance level options.
 
 For detailed documentation, use `?kardl`, `?kardl_set`, `?kardl_longrun`, `?symmetrytest`, `?pssf`, `?psst`, `?narayan`, or `?ecm`.
 

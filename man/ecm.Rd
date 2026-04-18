@@ -7,7 +7,6 @@
 ecm(
   data = NULL,
   formula = NULL,
-  case = 3,
   maxlag = NULL,
   mode = NULL,
   criterion = NULL,
@@ -94,16 +93,6 @@ rules:
 
 These components may therefore be combined flexibly to construct
 a specification tailored to the empirical analysis.}
-
-\item{case}{An integer specifying the case number for the restricted ECM test. The available cases are:
-\itemize{
-\item \code{case 1}: No constant, no trend.
-\item \code{case 2}: Restricted constant, no trend.
-\item \code{case 3}: Unrestricted constant, no trend.
-\item \code{case 4}: Unrestricted Constant, restricted trend.
-\item \code{case 5}: Unrestricted constant, unrestricted trend.
-}
-The choice of case depends on the specific characteristics of the data and the model being tested. Each case corresponds to different assumptions about the presence of a constant term and a trend in the model, which can affect the interpretation of the test results and the conclusions about cointegration.}
 
 \item{maxlag}{An integer specifying the maximum number of lags to be considered for the model.
        The default value is \code{4}. This parameter sets an upper limit on the lag length during

@@ -94,7 +94,7 @@ ggplot(LagCriteria_long, aes(x = lag, y = Value, color = Criteria, group = Crite
 
 
 ## ----ecm-estimation-----------------------------------------------------------
-ecm_model <- ecm(data=imf_example_data, formula = MyFormula, maxlag = 4, mode = "grid_custom", case = 3, signif_level = "0.05")
+ecm_model <- ecm(data=imf_example_data, formula = MyFormula, maxlag = 4, mode = "grid_custom")
 # View results
 summary(ecm_model)
 

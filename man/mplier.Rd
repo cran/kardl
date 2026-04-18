@@ -2,42 +2,79 @@
 % Please edit documentation in R/multipliers.R
 \name{mplier}
 \alias{mplier}
-\title{Calculating multipliers of estimated model}
+\title{Compute Dynamic Multipliers for kardl Models}
 \usage{
 mplier(kmodel, horizon = 80, minProb = 0)
 }
 \arguments{
-\item{kmodel}{The model produced by kardl function. This is the model object from which the dynamic multipliers will be calculated. The function expects an object of class \code{kardl_lm}, which is the standard output class for linear models estimated using the kardl package. If the input object does not inherit from this class, the function will throw an error, ensuring that it operates on compatible model objects.
-The function extracts necessary information from the model, such as coefficients, lag structure, and variable names, to compute the dynamic multipliers. It calculates the short-run coefficients, Lambda values, and omega values based on the model's parameters and lag structure. The output includes a matrix of dynamic multipliers (mpsi), which can be used for further analysis or visualization.}
+\item{kmodel}{An object of class \code{kardl_lm} produced by the \code{kardl} function.}
 
-\item{horizon}{The horizon over which multipliers will be computed. This parameter defines the time frame for the analysis, allowing users to specify how many periods into the future they want to calculate the multipliers for. For example, setting \code{horizon = 40} will compute the multipliers for 40 periods ahead. The function uses this horizon to determine the number of rows in the output matrix of multipliers and to structure the calculations accordingly.}
+\item{horizon}{Integer. Number of periods ahead for which dynamic multipliers are computed.}
 
-\item{minProb}{The minimum p-value threshold for including coefficients in the multipliers calculation. Coefficients with p-values above this threshold will be set to zero in the multipliers calculation. This parameter allows users to control the inclusion of coefficients based on their statistical significance. Setting a threshold can help focus the analysis on more relevant variables, but it may also exclude potentially important effects if set too stringently. The default value is \code{0}, which means that all coefficients will be included regardless of their p-values.}
+\item{minProb}{Numeric. Threshold for coefficient significance. Coefficients with
+p-values greater than this value are set to zero.}
 }
 \value{
-A list containing the following elements:
+A list of class \code{kardl_mplier} containing:
 \itemize{
- \item \strong{mpsi}: A matrix of dynamic multipliers for each
- variable across the specified horizon. The first column typically represents the time horizon (e.g., 0 to 40), while the subsequent columns contain the multiplier values for each variable.
- \item \strong{omega}: A vector of omega values calculated based on the  model's parameters and lag structure. These values are used in the calculation of the dynamic multipliers and provide insight into the persistence of effects over time.
- \item \strong{lambda}: A matrix of Lambda values that represent the short run coefficients and their transformations based on the model's parameters. These values are essential for understanding the immediate effects of changes in the independent variables on the dependent variable.
- \item \strong{horizon}: The horizon over which the multipliers were computed, as specified in the function's input. This value indicates the time frame for which the dynamic multipliers are relevant and can be used for interpretation and analysis of the results.
- \item \strong{model}: The original model object that was passed to the function. This allows users to reference the model used for the calculations and can be useful for further analysis or validation of the results.
- }
+  \item \strong{mpsi}: Matrix of cumulative dynamic multipliers.
+  \item \strong{omega}: Vector of omega coefficients (persistence structure).
+  \item \strong{lambda}: Matrix of short-run dynamic coefficients.
+  \item \strong{horizon}: Forecast horizon used.
+  \item \strong{vars}: Extracted model variable structure.
+}
 }
 \description{
-By running \code{m<-mplier(kardl_model)}, the object \code{m$mpsi} contains the final multiplier values, \code{m$omega} holds the omega values, and  \code{m$lambda} returns the Lambda values of the model.
+Computes cumulative dynamic multipliers based on a model estimated using the
+\code{kardl} framework. The function supports different configurations of
+linearity and asymmetry in both short-run and long-run dynamics.
 }
 \details{
+The asymmetry structure is determined internally:
+\itemize{
+  \item Variables in \code{extractedInfo$ASvars} are treated as asymmetric in the short run.
+  \item Variables in \code{extractedInfo$ALvars} are treated as asymmetric in the long run.
+}
+
+This allows four possible configurations:
+\itemize{
+  \item \strong{LL}: Linear in both short-run and long-run
+  \item \strong{NN}: Asymmetric in both short-run and long-run
+  \item \strong{SA}: Short-run linear, long-run asymmetric
+  \item \strong{AS}: Short-run asymmetric, long-run linear
+}
+
+When a component is linear, the same coefficient path is used for both positive
+and negative changes. When asymmetric, separate positive and negative effects
+are computed.
+
+
+
 The \code{mplier} function computes dynamic multipliers based on the coefficients and lag structure of a model estimated using the \code{kardl} package. The function extracts necessary
 information from the model, such as coefficients, lag structure, and variable names, to compute the dynamic multipliers. It calculates the short-run coefficients, Lambda values, and omega values based on the model's parameters and lag structure. The output includes a matrix of dynamic multipliers (mpsi), which can be used for further analysis or visualization.
 The dynamic multipliers provide insight into how changes in the independent variables affect the dependent variable over time, allowing for a deeper understanding of the relationships captured by the model. The function also allows users to set a minimum p-value threshold for including coefficients in the calculation, providing flexibility in focusing on statistically significant effects.
-The function is designed to work specifically with models estimated using the \code{kardl} package, and it ensures that the input model is of the correct class before proceeding with the calculations. The resulting multipliers can be used for various applications, including forecasting, policy analysis, and understanding the dynamic relationships between variables in time series data.
+
+The function constructs dynamic multipliers based on the recursive relationship:
 
 \deqn{
-{{\psi_{h}^{+} = {\sum_{i = 0}^{h}\frac{\partial y_{t + i}}{\partial x_{t}^{+}}}} ; {\psi_{h}^{-} = {\sum_{i = 0}^{h}\frac{\partial y_{t + i}}{\partial x_{t}^{-}}}}}
+\psi_{h}^{+} = \sum_{i=0}^{h} \frac{\partial y_{t+i}}{\partial x_{t}^{+}}, \quad
+\psi_{h}^{-} = \sum_{i=0}^{h} \frac{\partial y_{t+i}}{\partial x_{t}^{-}}
 }
-The above equation represents the cumulative dynamic multipliers for positive and negative changes in an independent variable (x) on the dependent variable (y) over a specified horizon (h). The multipliers are calculated as the sum of the partial derivatives of the dependent variable with respect to the positive and negative changes in the independent variable across the time horizon. These multipliers provide insight into how changes in the independent variable affect the dependent variable over time, allowing for a deeper understanding of the relationships captured by the model.
+
+where \eqn{\psi_h^{+}} and \eqn{\psi_h^{-}} represent cumulative responses to
+positive and negative shocks.
+
+The recursion is defined as:
+
+\deqn{
+\psi_h = \lambda_h + \sum_{j=1}^{p} \omega_j \psi_{h-j}
+}
+
+where \eqn{\lambda_h} captures short-run effects and \eqn{\omega_j} reflects
+persistence through lagged dependent variables.
+
+When asymmetry is present, positive and negative shocks are propagated separately.
+Otherwise, the same dynamic path is used.
 }
 \examples{
 
@@ -46,24 +83,47 @@ The above equation represents the cumulative dynamic multipliers for positive an
 # the kardl function, calculating the multipliers, and visualizing the results using both
 # base R plotting and ggplot2.
 
- kardl_model<-kardl(imf_example_data, CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
- mode=c(1,2,3,0))
+ # Calculating dynamic multipliers for a linear model in short and long run (NN)
+ kardl_model<-kardl(imf_example_data, CPI~ER )
+ m<-mplier(kardl_model,40)
+ head(m$mpsi)
+ plot(m)
+
+ # Calculating dynamic multipliers for a model with
+ # Short-run linear, long-run asymmetric (SA)
+ kardl_model<-kardl(imf_example_data, CPI~lasym(ER) )
+ m<-mplier(kardl_model,40)
+ head(m$mpsi)
+ plot(m)
+
+ # Calculating dynamic multipliers for a model with
+ # Short-run asymmetric, long-run linear (AS)
+ kardl_model<-kardl(imf_example_data, CPI~sasym(ER) )
+ m<-mplier(kardl_model,40)
+ head(m$mpsi)
+ plot(m)
+
+ # Calculating dynamic multipliers for a model with
+ # asymmetric effects in both short and long run (NN)
+ kardl_model<-kardl(imf_example_data, CPI~asym(ER) )
+ m<-mplier(kardl_model,40)
+ head(m$mpsi)
+ plot(m)
+
+ # The mpsi matrix contains the cumulative dynamic multipliers for each variable and time horizon.
+ # The omega vector contains the persistence structure of the model,
+ # while the lambda matrix contains the short-run dynamic coefficients.
+ # You can inspect these components to understand the dynamics captured by the model.
+ kardl_model<-kardl(imf_example_data, CPI~PPI+asym(ER) )
  m<-mplier(kardl_model,40)
  head(m$mpsi)
  head(m$omega)
  head(m$lambda)
 
- # Displaying the summary of the multipliers object
- summary(m)
-
- # Visualize the dynamic multipliers
-
-plot(m)
-
  # For plotting specific variables, you can specify them in the plot function. For example,
- # to plot the multipliers for the variable "ER":
+ # to plot the multipliers for the variable "PPI":
 
- plot(m, variable = "ER")
+ plot(m, variable = "PPI")
 
 
 }
