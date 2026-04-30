@@ -1,4 +1,4 @@
-#' Symmetry Test for non-linear KARDL Models
+#' Symmetry Test for Nonlinear kardl Models
 #'
 #' This function performs symmetry tests on non-linear KARDL models to assess whether the effects of positive and negative changes in independent variables are statistically different.
 #'
@@ -43,6 +43,13 @@
 #' \item \code{Swald:} A data frame containing the Wald test results for the short-run variables, including F-statistic, p-value, degrees of freedom, residual degrees of freedom, and sum of squares.
 #' \item \code{Shypotheses:} A list containing the null and alternative hypotheses for the short-run variables.
 #' }
+#' @srrstats {G1.0} This function cites the original source of the symmetry test for non-linear ARDL models, which is based on the work of Shin, Yu, and Greenwood-Nimmo (2014).
+#' @srrstats {G1.1} The function implements the symmetry test for non-linear ARDL models as described in the original paper by Shin, Yu, and Greenwood-Nimmo (2014). It uses the appropriate test statistics and follows the correct procedures for conducting the tests.
+#' @srrstats {G1.3} Statistical terms such as NULL hypothesis, alternative hypothesis, test statistic are defined in the context of the symmetry test for non-linear ARDL models.
+#' @srrstats {G2.0} The function validates that `kmodel` is of class `kardl_lm` and rejects ECM objects that are not suitable for symmetry testing.
+#' @srrstats {G2.3} The `component` argument is matched against `c("both", "shortrun", "longrun")` and `type` against `c("F", "Chisq")` using `match.arg()`.
+#' @srrstats {G5.2b} Tests include error expectations for incompatible object classes and invalid post-estimation inputs.
+
 #' @export
 #' @import nlWaldTest
 #' @importFrom car linearHypothesis
@@ -145,10 +152,8 @@ symmetrytest <- function(kmodel,
     bad_vars <- setdiff(vars, all_testable_vars)
     if (length(bad_vars) > 0) {
       stop(
-        paste0(
-          "These variables are not available for symmetry testing: ",
-          paste(bad_vars, collapse = ", ")
-        ),
+        "These variables are not available for symmetry testing: ",
+        toString(bad_vars),
         call. = FALSE
       )
     }
@@ -224,9 +229,9 @@ symmetrytest <- function(kmodel,
         Lhypotheses$H0[[x$varName]] <- paste0(
           "- Coef(", x$POS_param, ")/Coef(", LongDep, ") = - Coef(", x$NEG_param, ")/Coef(", LongDep, ")"
         )
-        Lhypotheses$H1[[x$varName]] <- paste0(
+        Lhypotheses$H1[[x$varName]] <- enc2utf8(paste0(
           "- Coef(", x$POS_param, ")/Coef(", LongDep, ") \u2260 - Coef(", x$NEG_param, ")/Coef(", LongDep, ")"
-        )
+        ))
 
 
 
@@ -339,7 +344,7 @@ symmetrytest <- function(kmodel,
       Sh_neg_H0 <- paste(NegHyp, collapse = " + ")
 
       Shypotheses$H0[[v]] <- paste0(Sh_pos_H0, " = ", Sh_neg_H0)
-      Shypotheses$H1[[v]] <- paste0(Sh_pos_H0, " \u2260 ", Sh_neg_H0)
+      Shypotheses$H1[[v]] <- enc2utf8(paste0(Sh_pos_H0, " \u2260 ", Sh_neg_H0))
 
       sw2 <- car::linearHypothesis(
         kmodel,
@@ -413,7 +418,7 @@ symmetrytest <- function(kmodel,
 }
 
 
-#' Pesaran et al. (2001) Bounds F-Test for KARDL Models
+#' Pesaran, Shin, and Smith Bounds F-Test
 #'
 #' This function performs the Pesaran, Shin, and Smith (PSS) F Bound test to assess the presence of a long-term relationship (cointegration) between variables in the context of an autoregressive distributed lag (ARDL) model. The PSS F Bound test examines the joint significance of lagged levels of the variables in the model. It provides critical values for both the upper and lower bounds, which help determine whether the variables are cointegrated. If the calculated F-statistic falls outside these bounds, it indicates the existence of a long-term equilibrium relationship. This test is particularly useful when the underlying data includes a mix of stationary and non-stationary variables.
 #'
@@ -432,7 +437,10 @@ symmetrytest <- function(kmodel,
 #' @param signif_level Character or numeric. Specifies the significance level to be used in the function.
 #' Acceptable values are "auto", "0.10", "0.1", "0.05", "0.025", and "0.01".
 #' If a numeric value is provided, it will be converted to a character string.
-#' If "auto" is chosen, the function determines the significance level automatically.
+#'
+#' When \code{"auto"} is selected, the function determines the significance level
+#' sequentially, starting from the most stringent level (\code{"0.01"}) and proceeding
+#' to \code{"0.025"}, \code{"0.05"}, and \code{"0.10"} until a suitable level is identified.
 #' Invalid values will result in an error.
 #'
 #' @section Hypothesis testing:
@@ -471,6 +479,12 @@ symmetrytest <- function(kmodel,
 #' \item \code{notes}: A character vector containing any notes or warnings related to
 #' the test, such as the suitability of the test for small sample sizes or any adjustments made to the case based on the model's characteristics.
 #' }
+#' @srrstats {G1.0} This function cites the original source of the Pesaran, Shin, and Smith (2001) bounds testing approach for cointegration analysis, which is a widely used method in econometrics for testing the existence of long-term relationships between variables in autoregressive distributed lag (ARDL) models. The function also provides guidance on the suitability of the test for small sample sizes and suggests alternative approaches when necessary.
+#' @srrstats {G1.3}  Statistical terms such as NULL hypothesis, alternative hypothesis, test statistic are defined in the context of the Pesaran, Shin, and Smith (2001) bounds testing approach for cointegration analysis.
+#' @srrstats {G2.0} Input argument `kmodel` is validated as a `kardl_lm` object; `case` and `signif_level` are validated against acceptable values before the test is performed.
+#' @srrstats {G2.3} The `case` argument is validated against `c(1,2,3,4,5,"auto")`; `signif_level` against the set of accepted strings.
+#' @srrstats {TS2.2} The documentation discusses stationarity requirements in the context of ARDL bounds testing and the I(0)/I(1) framework.
+#' @srrstats {TS2.4} Users are expected to assess integration order before applying bounds-test interpretations; the documentation states these modelling assumptions.
 #' @export
 #' @importFrom car linearHypothesis
 #' @seealso   \code{\link{psst}}  \code{\link{ecm}}  \code{\link{narayan}}
@@ -492,17 +506,20 @@ symmetrytest <- function(kmodel,
 #' my_summary$crit_vals
 #'
 #'
-#'
-#'
 #' # Using magrittr :
 #'
+#' @examplesIf requireNamespace("magrittr", quietly = TRUE)
 #' library(magrittr)
-#' imf_example_data %>% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+#'    imf_example_data %>%
+#'    kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
 #'                            mode=c(1,2,3,0)) %>% pssf()
 #'
-#' # Getting details of the test results using magrittr:
-#' imf_example_data %>% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-#'                            mode=c(1,2,3,0)) %>% pssf() %>% summary()
+#'    # Getting details of the test results using magrittr:
+#'    imf_example_data %>%
+#'    kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+#'                            mode=c(1,2,3,0)) %>%
+#'    pssf() %>% summary()
+#'
 #'
 #'
 pssf<-function(kmodel,case=3,signif_level = "auto"){
@@ -621,6 +638,15 @@ pssf<-function(kmodel,case=3,signif_level = "auto"){
   ), class = c("kardl_test","htest"))
 }
 
+#' Summary method for Pesaran, Shin, and Smith Bounds F-Test
+#'
+#' This function provides a summary of the results from the Pesaran, Shin, and Smith (PSS) Bounds F-test for cointegration. It checks the validity of the input object, extracts relevant information from the test results, and organizes it into a structured format for easy interpretation. The summary includes the test statistic, critical values based on the specified case and significance level, and any notes or warnings related to the test.
+#' @param testObj An object of class "kardl_test" and "htest" that contains the results of the PSS Bounds F-test. The object should have been created using the \code{pssf()} function.
+#' @param ... Additional arguments (not currently used).
+#' @return A list containing the summary of the PSS Bounds F-test results, including
+#' the test statistic, critical values, and any notes or warnings. The list is of class "kardl_test_summary".
+#' @noRd
+
 htestsummary.pssf<-function(testObj,...){
   # check if the testObj is of class "kardl_test" and "htest" and if the method is "PesaranF"
   if(!inherits(testObj, "kardl_test") || !inherits(testObj, "htest") || testObj$test.func != "pssf"){
@@ -649,7 +675,7 @@ htestsummary.pssf<-function(testObj,...){
 
 
 
-  MatName=c("k","0.10L","0.10U","0.05L","0.05U","0.025L","0.025U","0.01L","0.01U")
+  MatName <- c("k","0.10L","0.10U","0.05L","0.05U","0.025L","0.025U","0.01L","0.01U")
   PSSCrVals<-t(matrix(crVals,9,11))
 
 
@@ -667,25 +693,25 @@ htestsummary.pssf<-function(testObj,...){
     numericDec<-1
 
     if(PF>=bu[4,"U"]){
-      decision<-"Reject H0 \u2192 Cointegration (at 1% level)";
+      decision<-"Reject H0 \u2192 Cointegration (at 1% level)"
       sig<-"0.01"
     }else if(PF>=bu[3,"U"]){
-      decision<-"Reject H0 \u2192 Cointegration (at 2.5% level)";
+      decision<-"Reject H0 \u2192 Cointegration (at 2.5% level)"
       sig<-"0.025"
     }else if(PF>=bu[2,"U"]){
-      decision<-"Reject H0 \u2192 Cointegration (at 5% level)";
+      decision<-"Reject H0 \u2192 Cointegration (at 5% level)"
       sig<-"0.05"
     }else if(PF>=bu[1,"U"]){
-      decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)";
+      decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)"
       sig<-"0.10"
     }else{
       sig<-""
       if(PF>=bu[1,"L"]){
-        decision<-"Inconclusive";
-        numericDec=0
+        decision<-"Inconclusive"
+        numericDec <- 0
       }else{
-        decision<-"Fail to reject H0 \u2192 No Cointegration";
-        numericDec=-1
+        decision<-"Fail to reject H0 \u2192 No Cointegration"
+        numericDec <- -1
       }
     }
   }else{
@@ -693,16 +719,17 @@ htestsummary.pssf<-function(testObj,...){
     buRow<-switch (signif_level,"0.1"=1, "0.10"=1,"0.05"=2,"0.025"=3,"0.01"=4)
     if(PF>=bu[buRow,"U"]){
       if(buRow==1){
-        decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)";
+        decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)"
       }else {
-        decision<-paste0("Reject H0 \u2192 Cointegration (at ",switch (buRow,"1"="10%","2"="5%","3"="2.5%","4"="0.01")," level)");
+        decision<-paste0("Reject H0 \u2192 Cointegration (at ",switch (buRow,"1"="10%","2"="5%","3"="2.5%","4"="0.01")," level)")
       }
-      numericDec=1
+      numericDec <- 1
     }else if(PF>=bu[buRow,"L"]){
-      decision<-"Inconclusive";numericDec=0
+      decision<-"Inconclusive"
+      numericDec<-0
     }else{
-      decision<-"Fail to reject H0 \u2192 No Cointegration";
-      numericDec=-1
+      decision<-"Fail to reject H0 \u2192 No Cointegration"
+      numericDec <- -1
     }
   }
 
@@ -731,6 +758,17 @@ htestsummary.pssf<-function(testObj,...){
   ), class = "summary_htest")
 }
 
+#' Summary method for cointegration tests
+#'
+#' This function provides a summary of the results from various cointegration tests, including the Pesaran, Shin, and Smith (PSS) Bounds F-test and the Narayan test. It checks the validity of the input object, extracts relevant information from the test results, and organizes it into a structured format for easy interpretation. The summary includes the test statistic, critical values based on the specified case and significance level, and any notes or warnings related to the test.
+#' @param inputs An object of class "kardl_test" and "htest
+#' that contains the results of a cointegration test. The object should have been created using either the \code{pssf()}, \code{pssf()} or \code{narayan()} function.
+#' @param ... Additional arguments (not currently used).
+#' @return A list containing the summary of the cointegration test results, including
+#' the test statistic, critical values, and any notes or warnings. The list is of
+#' class "summary_htest".
+#' @noRd
+
 htestsummary<-function(inputs,...){
 
   switch(inputs$test.func,
@@ -742,7 +780,7 @@ htestsummary<-function(inputs,...){
 
 }
 
-#' Narayan Test
+#' Narayan Bounds Test
 #'
 #' This function performs the Narayan test, which is designed to assess cointegration using critical values specifically tailored for small sample sizes. Unlike traditional cointegration tests that may rely on asymptotic distributions, the Narayan test adjusts for the limitations of small samples, providing more accurate results in such contexts. This makes the test particularly useful for studies with fewer observations, as it accounts for sample size constraints when determining the presence of a long-term equilibrium relationship between variables.
 #'
@@ -760,16 +798,23 @@ htestsummary<-function(inputs,...){
 #'
 #'
 #' @param signif_level Character or numeric. Specifies the significance level to be used in the function.
-#'
 #' Acceptable values are "auto", "0.10", "0.1", "0.05", "0.025", and "0.01".
 #' If a numeric value is provided, it will be converted to a character string.
-#' If "auto" is chosen, the function determines the significance level automatically.
-#' Invalid values will result in an error.
 #'
+#' When \code{"auto"} is selected, the function determines the significance level
+#' sequentially, starting from the most stringent level (\code{"0.01"}) and proceeding
+#' to \code{"0.025"}, \code{"0.05"}, and \code{"0.10"} until a suitable level is identified.
+#' Invalid values will result in an error.
 #'
 #' @inheritSection pssf Hypothesis testing
 #' @inherit pssf return
 #' @importFrom car linearHypothesis
+#'
+#' @srrstats {G1.0} This function cites the original source of the Narayan (2005) bounds testing approach for cointegration analysis in small samples, which provides critical values specifically designed for such contexts.
+#' @srrstats {G1.3}  Statistical terms such as NULL hypothesis, alternative hypothesis, test statistic are defined in the context of the Narayan (2005) bounds testing approach for cointegration analysis in small samples.
+#' @srrstats {G2.0} Input argument `kmodel` is validated as a `kardl_lm` object; `case` and `signif_level` are validated against acceptable values before the test is performed.
+#' @srrstats {G2.3} The `case` argument is validated against `c(2,3,4,5,"auto")`; `signif_level` against the set of accepted strings.
+#' @srrstats {TS2.3} The documentation notes that the Narayan test is designed for small samples (n < 100) and suggests `pssf()` for larger samples.
 #' @references Narayan, P. K. (2005). The saving and investment nexus for China: evidence from cointegration tests. Applied economics, 37(17), 1979-1990.
 #' @export
 #' @seealso \code{\link{pssf}}  \code{\link{psst}}  \code{\link{ecm}}
@@ -793,13 +838,18 @@ htestsummary<-function(inputs,...){
 #'
 #' # Using magrittr :
 #'
+#' @examplesIf requireNamespace("magrittr", quietly = TRUE)
 #' library(magrittr)
-#' imf_example_data %>% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-#'                            mode=c(1,2,3,0)) %>% narayan()
+#'   imf_example_data %>%
+#'   kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+#'                         mode=c(1,2,3,0)) %>% narayan()
 #'
-#' # Getting details of the test results using magrittr:
-#' imf_example_data %>% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-#'                            mode=c(1,2,3,0)) %>% narayan() %>% summary()
+#'   # Getting details of the test results using magrittr:
+#'    imf_example_data %>%
+#'    kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+#'                            mode=c(1,2,3,0)) %>%
+#'    narayan() %>% summary()
+#'
 #'
 #'
 narayan<-function(kmodel,case=3,signif_level = "auto"){
@@ -906,6 +956,17 @@ narayan<-function(kmodel,case=3,signif_level = "auto"){
   ), class = c("kardl_test","htest"))
 }
 
+#' Summary method for Narayan Bounds F-Test
+#'
+#' This function provides a summary of the results from the Narayan Bounds F-test for cointegration. It checks the validity of the input object, extracts relevant information from the test results, and organizes it into a structured format for easy interpretation. The summary includes the test statistic, critical values based on the specified case and significance level, and any notes or warnings related to the test.
+#' @param testObj An object of class "kardl_test" and "htest" that contains
+#' the results of the Narayan Bounds F-test. The object should have been created using the \code{narayan()} function.
+#' @param ... Additional arguments (not currently used).
+#' @return A list containing the summary of the Narayan Bounds F-test results, including
+#' the test statistic, critical values, and any notes or warnings. The list is of
+#' class "summary_htest".
+#' @noRd
+
 htestsummary.narayan<-function(testObj,...){
   # check if the testObj is of class "kardl_test" and "htest" and if the method is "PesaranF"
   if(!inherits(testObj, "kardl_test") || !inherits(testObj, "htest") || testObj$test.func != "narayan"){
@@ -981,22 +1042,22 @@ htestsummary.narayan<-function(testObj,...){
     numericDec<-1
 
     if(PF>=bu[3,"U"]){
-      decision<-"Reject H0 \u2192 Cointegration (at 1% level)";
+      decision<-"Reject H0 \u2192 Cointegration (at 1% level)"
       sig<-"0.01"
     }else if(PF>=bu[2,"U"]){
-      decision<-"Reject H0 \u2192 Cointegration (at 5% level)";
+      decision<-"Reject H0 \u2192 Cointegration (at 5% level)"
       sig<-"0.05"
     }else if(PF>=bu[1,"U"]){
-      decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)";
+      decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)"
       sig<-"0.10"
     }else{
       sig<-""
       if(PF>=bu[1,"L"]){
-        decision<-"Inconclusive";
-        numericDec=0
+        decision<-"Inconclusive"
+        numericDec <- 0
       }else{
-        decision<-"Fail to reject H0 \u2192 No Cointegration";
-        numericDec=-1
+        decision<-"Fail to reject H0 \u2192 No Cointegration"
+        numericDec <- -1
       }
     }
   }else{
@@ -1004,16 +1065,17 @@ htestsummary.narayan<-function(testObj,...){
     buRow<-switch (signif_level,"0.1"=1, "0.10"=1,"0.05"=2,"0.01"=3)
     if(PF>=bu[buRow,"U"]){
       if(buRow==1){
-        decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)";
+        decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)"
       }else {
-        decision<-paste0("Reject H0 \u2192 Cointegration (at ",switch (buRow,"1"="10%","2"="5%","3"="0.01")," level)");
+        decision<-paste0("Reject H0 \u2192 Cointegration (at ",switch (buRow,"1"="10%","2"="5%","3"="0.01")," level)")
       }
-      numericDec=1
+      numericDec <- 1
     }else if(PF>=bu[buRow,"L"]){
-      decision<-"Inconclusive";numericDec=0
+      decision<-"Inconclusive"
+      numericDec<-0
     }else{
-      decision<-"Fail to reject H0 \u2192 No Cointegration";
-      numericDec=-1
+      decision<-"Fail to reject H0 \u2192 No Cointegration"
+      numericDec <- -1
     }
   }
   caseTxt <- switch(case,
@@ -1043,7 +1105,7 @@ htestsummary.narayan<-function(testObj,...){
 }
 
 
-#' PSS t Bound Test
+#' Pesaran, Shin, and Smith t Bounds Test
 #'
 #' This function performs the Pesaran t Bound test
 #'
@@ -1064,21 +1126,23 @@ htestsummary.narayan<-function(testObj,...){
 #'
 #'
 #' @return The function returns an object of class "htest" containing the following components:
-#' \itemize{
-#' \item{statistic: The calculated t-statistic for the test.}
-#' \item{method: A description of the test performed.}
-#' \item{data.name: The name of the data used in the test.}
-#' \item{k: The number of independent variables in the model.}
-#' \item{notes: Any notes or warnings related to the test results, such as
+#' \describe{
+#' \item{statistic}{The calculated t-statistic for the test.}
+#' \item{method}{A description of the test performed.}
+#' \item{data.name}{The name of the data used in the test.}
+#' \item{k}{The number of independent variables in the model.}
+#' \item{notes}{Any notes or warnings related to the test results, such as
 #' sample size considerations or adjustments made to the case based on model characteristics.}
-#' \item{sig: The significance level used for the test, either specified by the user or determined automatically.}
-#' \item{alternative: The alternative hypothesis being tested.}
-#' \item{case: The case used for the test, either specified by the user or determined automatically based on the model's characteristics.}
+#' \item{sig}{The significance level used for the test, either specified by the user or determined automatically.}
+#' \item{alternative}{The alternative hypothesis being tested.}
+#' \item{case}{The case used for the test, either specified by the user or determined automatically based on the model's characteristics.}
 #' }
 #'
-
-#'
-#'
+#' @srrstats {G1.0} This function cite the original source of the test, which is Pesaran, M. H., Shin, Y. and Smith, R. (2001), "Bounds Testing Approaches to the Analysis of Level Relationship", Journal of Applied Econometrics, 16(3), 289-326.
+#' @srrstats {G1.3}  Statistical terms such as NULL hypothesis, alternative hypothesis, test statistic are defined in the documentation.
+#' @srrstats {G2.0} Input argument `kmodel` is validated as a `kardl_lm` object; `case` and `signif_level` are validated before the test is performed.
+#' @srrstats {G2.3} The `case` argument is validated against `c(1,2,3,4,5,"auto")`; `signif_level` against the set of accepted character strings.
+#' @srrstats {TS2.2} The PSS t-test evaluates the error-correction coefficient, which is relevant to the cointegration and stationarity assumptions of the ARDL framework.
 #'
 #'
 #' @export
@@ -1107,13 +1171,19 @@ htestsummary.narayan<-function(testObj,...){
 #'
 #' # Using magrittr :
 #'
+#' @examplesIf requireNamespace("magrittr", quietly = TRUE)
 #' library(magrittr)
-#' imf_example_data %>% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-#'                            mode=c(1,2,3,0)) %>% psst()
+#'      imf_example_data %>%
+#'      kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+#'                            mode=c(1,2,3,0))    %>%
+#'                            psst()
 #'
-#' # Getting details of the test results using magrittr:
-#' imf_example_data %>% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-#'                            mode=c(1,2,3,0)) %>% psst() %>% summary()
+#'    # Getting details of the test results using magrittr:
+#'    imf_example_data %>%
+#'    kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+#'                            mode=c(1,2,3,0)) %>%
+#'    psst() %>% summary()
+#'
 #'
 #'
 
@@ -1153,7 +1223,7 @@ psst<-function(kmodel,case=3,signif_level = "auto"){
     case<-5
 
   }else{
-    if(!case ==3 ){
+    if(case != 3){
       # model has not trend but have constant
       notesArray <- c(notesArray,
                       "No trend is included. Case automatically adjusted to 3 (unrestricted intercept, no trend).")
@@ -1194,7 +1264,15 @@ psst<-function(kmodel,case=3,signif_level = "auto"){
 
 }
 
-
+#'
+#' Summary method for Pesaran, Shin, and Smith t Bounds Test
+#'
+#' This function provides a summary of the results from the Pesaran, Shin, and Smith (PSS) t Bounds test for cointegration. It includes the test statistic, critical values, and the decision regarding the null hypothesis of no cointegration.
+#'
+#' @param testObj An object of class "kardl_test" and "htest" resulting from the \code{\link{psst}} function.
+#' @param ... Additional arguments (not used).
+#' @return An object of class "summary_htest" containing the test results, including the test statistic, critical values, decision, and any relevant notes.
+#' @noRd
 htestsummary.psst<-function(testObj,...){
   # check if the testObj is of class "kardl_test" and "htest" and if the method is "PesaranF"
   if(!inherits(testObj, "kardl_test") || !inherits(testObj, "htest") || testObj$test.func != "psst"){
@@ -1233,7 +1311,7 @@ htestsummary.psst<-function(testObj,...){
 
   PSSCrVals<-t(matrix(crVals,8,11))
   PSSCrVals<-cbind(0:10,PSSCrVals)
-  MatName=c("k","0.10L","0.10U","0.05L","0.05U","0.025L","0.025U","0.01L","0.01U")
+  MatName <- c("k","0.10L","0.10U","0.05L","0.05U","0.025L","0.025U","0.01L","0.01U")
   colnames(PSSCrVals)<-MatName
 
   if(k>10){
@@ -1251,25 +1329,25 @@ htestsummary.psst<-function(testObj,...){
     numericDec<-1
 
     if(Pt>=bu[4,"U"]){
-      decision<-"Reject H0 \u2192 Cointegration (at 1% level)";
+      decision<-"Reject H0 \u2192 Cointegration (at 1% level)"
       sig<-"0.01"
     }else if(Pt>=bu[3,"U"]){
-      decision<-"Reject H0 \u2192 Cointegration (at 2.5% level)";
+      decision<-"Reject H0 \u2192 Cointegration (at 2.5% level)"
       sig<-"0.025"
     }else if(Pt>=bu[2,"U"]){
-      decision<-"Reject H0 \u2192 Cointegration (at 5% level)";
+      decision<-"Reject H0 \u2192 Cointegration (at 5% level)"
       sig<-"0.05"
     }else if(Pt>=bu[1,"U"]){
-      decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)";
+      decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)"
       sig<-"0.10"
     }else{
       sig<-""
       if(Pt>=bu[1,"L"]){
-        decision<-"Inconclusive";
-        numericDec=0
+        decision<-"Inconclusive"
+        numericDec <- 0
       }else{
-        decision<-"Fail to reject H0 \u2192 No Cointegration";
-        numericDec=-1
+        decision<-"Fail to reject H0 \u2192 No Cointegration"
+        numericDec <- -1
       }
     }
   }else{
@@ -1277,16 +1355,17 @@ htestsummary.psst<-function(testObj,...){
     buRow<-switch (signif_level,"0.1"=1, "0.10"=1,"0.05"=2,"0.025"=3,"0.01"=4)
     if(Pt>=bu[buRow,"U"]){
       if(buRow==1){
-        decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)";
+        decision<-"Reject H0 \u2192 Weak evidence of cointegration (at 10% level)"
       }else {
-        decision<-paste0("Reject H0 \u2192 Cointegration (at ",switch (buRow,"1"="10%","2"="5%","3"="2.5%","4"="0.01")," level)");
+        decision<-paste0("Reject H0 \u2192 Cointegration (at ",switch (buRow,"1"="10%","2"="5%","3"="2.5%","4"="0.01")," level)")
       }
-      numericDec=1
+      numericDec<-1
     }else if(Pt>=bu[buRow,"L"]){
-      decision<-"Inconclusive";numericDec=0
+      decision<-"Inconclusive"
+      numericDec<-0
     }else{
-      decision<-"Fail to reject H0 \u2192 No Cointegration";
-      numericDec=-1
+      decision<-"Fail to reject H0 \u2192 No Cointegration"
+      numericDec<- -1
     }
   }
 
@@ -1311,6 +1390,8 @@ htestsummary.psst<-function(testObj,...){
     notes=notes
   ), class = "summary_htest")
 }
+
+
 
 
 

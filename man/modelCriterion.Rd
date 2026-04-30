@@ -2,21 +2,21 @@
 % Please edit documentation in R/kardl.R
 \name{modelCriterion}
 \alias{modelCriterion}
-\title{Model Selection Criterion}
+\title{Model Selection Criteria}
 \usage{
 modelCriterion(estModel, cr, ...)
 }
 \arguments{
 \item{estModel}{An object containing the fitted model. The object should include at least:
 \itemize{
-\item \code{estModel$model} – the actual fitted model object (e.g., from \code{lm}, \code{glm}).
-\item \code{k} – the number of estimated parameters.
-\item \code{n} – the sample size.
+\item \code{estModel$model} - the actual fitted model object (e.g., from \code{lm}, \code{glm}).
+\item \code{k} - the number of estimated parameters.
+\item \code{n} - the sample size.
 }}
 
 \item{cr}{A character string specifying the criterion to compute.
 Options are \code{"AIC"}, \code{"BIC"}, \code{"AICc"}, and \code{"HQ"}. Alternatively,
-a user-defined function can be provided.}
+a user-defined function can be provided. See details below for more information on using custom criteria.}
 
 \item{...}{Additional arguments passed to the user-defined criterion function if \code{cr} is a function.}
 }
@@ -43,7 +43,7 @@ The function returns:
 \item \strong{"AIC"}:  \eqn{ \frac{2k - 2\ell}{n} } Akaike Information Criterion divided by \code{n}.
 \item \strong{"BIC"}:  \eqn{ \frac{\log(n) \cdot k - 2\ell}{n} } Bayesian Information Criterion divided by \code{n}.
 \item \strong{"AICc"}: \eqn{ \frac{2k(k+1)}{n - k - 1} + \frac{2k - 2\ell}{n} } Corrected Akaike Information Criterion divided by \code{n}.
-\item \strong{"HQ"}: \eqn{ \frac{2 \log(\log(n)) \cdot k - 2\ell}{n} } Hannan–Quinn Criterion divided by \code{n}.
+\item \strong{"HQ"}: \eqn{ \frac{2 \log(\log(n)) \cdot k - 2\ell}{n} } Hannan-Quinn Criterion divided by \code{n}.
 }
 
 where:
@@ -57,23 +57,29 @@ If \code{cr} is a function, it is called with the fitted model and any additiona
 }
 \examples{
 
-# Example usage of modelCriterion function with a linear model
+# Example usage of modelCriterion function with a simple linear model
 mylm<- lm(mpg ~ wt + hp, data = mtcars)
 modelCriterion(mylm, AIC )
-modelCriterion(mylm, "BIC" )
-mm<-AIC(mylm)
- class(mm) == class(modelCriterion(mylm, "AIC"))
+modelCriterion(mylm, "AIC" )
 
  # Example usage of modelCriterion function with a kardl model
  kardl_model <- kardl(imf_example_data,
                       CPI ~ ER + PPI + asym(ER) + deterministic(covid) + trend,
                       mode = c(1, 2, 3, 0))
+
+ # Using AIC as the kardl package's built-in criterion function which is different
+ # from the base R AIC function.
  modelCriterion(kardl_model, "AIC")
+
+ # Using the base R AIC function directly on the fitted model object
  modelCriterion(kardl_model, AIC)
+ # Using the base R AIC function outside of modelCriterion to compute AIC for the fitted model
  AIC(kardl_model)
+
+ # Using BIC as the criterion for the kardl model which is different from the base R BIC function.
  modelCriterion(kardl_model, "BIC")
 
- # Using a custom criterion function
+ # Using a custom criterion function that divides AIC by the sample size
  my_cr_fun <- function(mod, ...) { AIC(mod) / length(mod$model[[1]]) }
  modelCriterion(kardl_model, my_cr_fun)
 

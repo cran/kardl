@@ -3,6 +3,29 @@
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 
+## ----srr-tags, eval = FALSE, echo = FALSE-------------------------------------
+# #' srr tags for the kardl package
+# #'
+# #' This package follows structured statistical reporting rules using the
+# #' `srrstats` framework. The standards governing implementation and documentation
+# #' are summarized below.
+# #'
+# #' @srrstats {G1.0} The package documentation and accompanying materials cite the ARDL
+# #' bounds-testing and nonlinear ARDL literature on which the implemented estimators,
+# #' asymmetry decomposition, bounds tests, and dynamic multipliers are based.
+# #' @srrstats {G1.1} The package is described as an implementation and extension of ARDL
+# #' and NARDL workflows, supporting mixed symmetric and asymmetric regressors,
+# #' flexible lag selection, and dynamic multiplier methods.
+# #' @srrstats {G1.2} The README, NEWS file, and package website describe the development
+# #' status, recent changes, and future maintenance plans of the package.
+# #' @srrstats {G1.3} Key statistical concepts such as ARDL, NARDL, ECM, bounds testing,
+# #' short-run asymmetry, long-run asymmetry, and dynamic multipliers are defined
+# #' in function documentation and vignettes.
+# #' @srrstats {G1.4} All user-facing functions and S3 methods are documented using `roxygen2`,
+# #' and the generated Rd files are maintained as part of the package documentation workflow.
+# #' @srrstats {G1.4a} Internal helper functions are documented where necessary and are
+# #' excluded from the public help index using `@noRd` or marked as internal.
+
 ## ----install-cran, eval=FALSE-------------------------------------------------
 # 
 # install.packages("kardl")
@@ -28,6 +51,12 @@ library(kardl)
 # Define the model formula
 MyFormula <- CPI ~ ER + PPI + asymmetric(ER + PPI) + deterministic(covid) + trend
 
+
+## ----eval=FALSE---------------------------------------------------------------
+# sameFormula <- y ~Asymmetric(x1)+Sasymmetric(x2+x3)+Lasymmetric(x4+x5) + Deterministic(dummy1) + trend
+# sameFormula <- y ~asymmetric(x1)+Sasymmetric(x2+x3)+Lasymmetric(x4+x5) + deterministic(dummy1) + trend
+# sameFormula <- y ~asym(x1)+sasym(x2+x3)+lasym(x4+x5) + det(dummy1) + trend
+# sameFormula <- y ~a(x1)+s(x2+x3)+l(x4+x5) + d(dummy1) + trend
 
 ## ----model-grid---------------------------------------------------------------
 

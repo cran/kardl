@@ -2,7 +2,7 @@
 % Please edit documentation in R/tests.R
 \name{pssf}
 \alias{pssf}
-\title{Pesaran et al. (2001) Bounds F-Test for KARDL Models}
+\title{Pesaran, Shin, and Smith Bounds F-Test}
 \usage{
 pssf(kmodel, case = 3, signif_level = "auto")
 }
@@ -22,7 +22,10 @@ Acceptable values are 1, 2, 3, 4, 5, and "auto". If "auto" is chosen, the functi
 \item{signif_level}{Character or numeric. Specifies the significance level to be used in the function.
 Acceptable values are "auto", "0.10", "0.1", "0.05", "0.025", and "0.01".
 If a numeric value is provided, it will be converted to a character string.
-If "auto" is chosen, the function determines the significance level automatically.
+
+When \code{"auto"} is selected, the function determines the significance level
+sequentially, starting from the most stringent level (\code{"0.01"}) and proceeding
+to \code{"0.025"}, \code{"0.05"}, and \code{"0.10"} until a suitable level is identified.
 Invalid values will result in an error.}
 }
 \value{
@@ -46,26 +49,25 @@ This function performs the Pesaran, Shin, and Smith (PSS) F Bound test to assess
 
 The null hypothesis (H0) of the F Bound test is that there is no cointegration among the variables in the model. In other words, it tests whether the long-term relationship between the variables is statistically significant. If the calculated F-statistic exceeds the upper critical value, we reject the null hypothesis and conclude that there is cointegration. Conversely, if the F-statistic falls below the lower critical value, we fail to reject the null hypothesis, indicating no evidence of cointegration. If the F-statistic lies between the two critical values, the result is inconclusive.
 
-
- \deqn{
+\deqn{
   \Delta {y}_t =  \psi  + \varphi t  + \eta _0   {y}_{t-1}  + \sum_{i=1}^{k} {  \eta _i   {x}_{i,t-1} }  +   \sum_{j=1}^{p} { \gamma_{j}  \Delta {y}_{t-j} }+ \sum_{i=1}^{k} {\sum_{j=0}^{q_i} { \beta_{ij}   \Delta {x}_{i,t-j} } }+ e_t
 }
 
 \describe{
-  \item{Cases 1, 3, 5:}{
-     \deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k  = 0}
-     \deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k} \neq 0}
-  }
-  \item{Case 2:}{
-     \deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k =  \psi  = 0}
-     \deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k}  \neq \psi \neq 0}
-  }
+\item{Cases 1, 3, 5:}{
+\deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k  = 0}
+\deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k} \neq 0}
+}
+\item{Case 2:}{
+\deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k =  \psi  = 0}
+\deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k}  \neq \psi \neq 0}
+}
 
-  \item{Case 4:}{
-     \deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k = \varphi = 0}
-     \deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k}  \neq \varphi \neq 0}
-      }
-  }
+\item{Case 4:}{
+\deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k = \varphi = 0}
+\deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k}  \neq \varphi \neq 0}
+}
+}
 }
 
 \examples{
@@ -83,19 +85,22 @@ my_summary
 my_summary$crit_vals
 
 
-
-
 # Using magrittr :
 
+\dontshow{if (requireNamespace("magrittr", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(magrittr)
-imf_example_data \%>\% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+   imf_example_data \%>\%
+   kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
                            mode=c(1,2,3,0)) \%>\% pssf()
 
-# Getting details of the test results using magrittr:
-imf_example_data \%>\% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-                           mode=c(1,2,3,0)) \%>\% pssf() \%>\% summary()
+   # Getting details of the test results using magrittr:
+   imf_example_data \%>\%
+   kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+                           mode=c(1,2,3,0)) \%>\%
+   pssf() \%>\% summary()
 
 
+\dontshow{\}) # examplesIf}
 }
 \references{
 Pesaran, M. H., Shin, Y. and Smith, R. (2001), "Bounds Testing Approaches to the Analysis of Level Relationship", Journal of Applied Econometrics, 16(3), 289-326.

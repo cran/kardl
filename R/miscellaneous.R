@@ -1,5 +1,5 @@
 
-#' Merge two lists, giving precedence to the first list for overlapping names
+#' Merge Lists with Priority to the First Argument
 #'
 #' The first list of values takes precedence. When both lists have items with the same names, the values from the first list will be applied. In merging the two lists, priority is given to the left list, so if there are overlapping items, the corresponding value from the left list will be used in the merged result.
 #' @param first The first list
@@ -9,36 +9,45 @@
 #' @return A merged list with unique names, prioritizing values from the first list in case of name conflicts.
 #' @export
 #' @seealso  \code{\link[base]{append}}
+#' @details
+#' The \code{lmerge()} function is designed to merge multiple lists while giving precedence to the values in the first list.
+#' This function is particularly useful when you want to combine settings or parameters from multiple sources while ensuring that the primary source (the first list) takes priority over others.
+#'
+#' For right merge, a user can simply swap the order of the lists to give priority to the second list. For example, \code{lmerge(b, a)} will prioritize values from list \code{b} over those in list \code{a}.
+#'
 #' @examples
 #'
 #' a<-list("a"="first a","b"="second a","c"=list("w"=12,"k"=c(1,3,6)))
 #' b<-list("a"="first b","b"="second b","d"=14,"e"=45)
-#' theResult<- lmerge(a,b)
-#' unlist(theResult)
+#' myMerged<- lmerge(a,b)
+#' print(unlist(myMerged))
 #'
 #' # for right merge
-#' lmerge(b,a)
+#' myMerged<- lmerge(b,a)
+#' print(unlist(myMerged))
 #'
-#' # Unisted return
-#' theResult<- lmerge(a,b,c("v1"=11,22,3,"v5"=5))
-#' theResult
+#' # for more than two lists
+#' myMerged<- lmerge(a,b,c("v1"=11,22,3,"v5"=5))
+#' print(unlist(myMerged))
 #'
+#' # for more than two lists with nested lists
 #' m2<-list("m1"="kk2","m1.2.3"=list("m1.1.1"=333,"m.1.4"=918,"m.1.5"=982,"m.1.6"=981,"m.1.7"=928))
 #' m3<-list("m1"="kk23","m2.3"=2233,"m1.2.4"=list("m1.1.1"=333444,"m.1.5"=982,"m.1.6"=91,"m.1.7"=928))
 #' a<-c(32,34,542,"k"=35)
 #' b<-c(65,"k"=34)
 #'
 #' h1<-lmerge(a, m2)
-#' unlist( h1)
+#' print(unlist(h1))
+#'
 #' h2<-lmerge(a,b,m2,m3,list("m1.1"=4))
-#' unlist(h2)
-
+#' print(unlist(h2))
+#'
 
 lmerge<-function(first,second,...){
-  a<-first;
+  a<-first
   b<-second
   otherArgs<-list(...)
-  for (v in 1:length(a)) {
+  for (v in seq_along(a)) {
     n<-names(a[v])
     if(isFALSE( is.list( b[n]))){
       if(nzchar(n)){
@@ -54,9 +63,9 @@ lmerge<-function(first,second,...){
   }
   o<-c(a,b)
   if(length(otherArgs)>0){
-    for (q in 1:length(otherArgs)) {
+    for (q in seq_along(otherArgs)) {
       b2<-otherArgs[q][[1]]
-      for (v in 1:length(o)) {
+      for (v in seq_along(o)) {
         n<-names(o[v])
         if(isFALSE( is.list( b2[n]))){
           if(nzchar(n)){
@@ -75,7 +84,7 @@ lmerge<-function(first,second,...){
 }
 
 
-#' Parse a formula to detect specific variable patterns
+#' Parse Formula Variables
 #'
 #' The \code{parseFormula()} function analyzes a given formula to identify and extract variables that match specified patterns. It is particularly useful for isolating variables enclosed within certain functions or constructs in the formula, such as \code{asym()}, \code{det()}, or any user-defined patterns.
 #'
@@ -94,6 +103,10 @@ lmerge<-function(first,second,...){
 #' @export
 #'
 #' @seealso \code{\link[stats]{formula}} and \code{\link[base]{gregexpr}}
+#'
+#' @srrstats {G2.4c} Variable names and parsed formula terms are handled as character vectors when constructing variable lists from the formula.
+#' @srrstats {G2.6} One-dimensional variables selected through the formula are extracted and aligned through this routine before lagged terms are generated.
+#' @srrstats {G2.3b} Formula terms and asymmetry constructors are processed consistently so that documented model syntax is interpreted as intended.
 #'
 #' @examples
 #'
@@ -190,21 +203,23 @@ parse_formula_vars <- function(formula) {
 }
 
 
-# Batch Control
-#
-# This function divides a large estimation task into smaller, manageable batches.
-# If a job requires numerous estimations (e.g., 1,000,000), this function can partition it into batches # nolint: line_length_linter.
-# and determine the start and end points for each batch.
-#
-# @param inputs A list containing:
-#   - BatchTotal: Total number of batches planned.
-#   - BatchCurrent: The current batch number being processed.
-#   - lagRowsNumber: The total number of estimations required for the job.
-#
-# @return A list with the following:
-#   - startRow: The starting row for the current batch.
-#   - endRow: The ending row for the current batch.
-#
+#' Batch Control
+#'
+#' The \code{BatchControl()} function is designed to manage the execution of tasks in batches. It calculates the starting and ending row indices for a given batch based on the total number of tasks and the specified batch format. The function supports both single batch execution (where all tasks are processed at once) and multiple batch execution (where tasks are divided into specified batches).
+#'
+#' @param spec A list containing the necessary information for batch control, including:
+#' \itemize{
+#' \item \code{argsInfo$batch}: A string specifying the batch format.
+#' \item \code{extractedInfo$lagRowsNumber}: The total number of tasks (rows) to be processed.
+#' }
+#' @return A list containing:
+#' \itemize{
+#' \item \code{startRow}: The starting row index for the current batch.
+#' \item \code{endRow}: The ending row index for the current batch.
+#' \item \code{batch_size}: The number of tasks in the current batch.
+#' }
+#' @noRd
+#'
 
 
 BatchControl<-function(spec){
@@ -218,7 +233,7 @@ BatchControl<-function(spec){
       stop("Invalid batch format. Use 'x/y', where x is the batch number and y is the total number of batches.",call. = FALSE)
     }
     # Extract batch number and total batches
-    batch_parts <- as.numeric(strsplit(spec$argsInfo$batch, "/")[[1]])
+    batch_parts <- as.numeric(strsplit(spec$argsInfo$batch, "/", fixed = TRUE)[[1]])
     current_batch <- batch_parts[1]
     total_batches <- batch_parts[2]
 
@@ -247,19 +262,22 @@ BatchControl<-function(spec){
 
 
 
+#' Display Progress Bar
+#'
+#' The \code{progressBar()} function provides a visual representation of the progress of a task in the console. It calculates the percentage of completion based on the current and total values and displays a progress bar accordingly. The function also allows for additional strings to be displayed alongside the progress bar for more context.
+#' @param current The current progress value (e.g., number of tasks completed).
+#' @param total The total value representing the completion point (e.g., total number of
+#' tasks).
+#' @param additionalStrings Optional additional strings to display alongside the progress bar for more context.
+#' @param verbose A logical value indicating whether to display the progress bar (default is TRUE
+#' to show progress).
+#' @param use_message A logical value indicating whether to use the \code{message()}
+#' function for output (CRAN-friendly but no overwrite) instead of \code{cat()} (which overwrites in the console). Default is FALSE, meaning \code{cat()} will be used for an overwriting progress bar.
+#' @return Invisibly returns NULL. The primary purpose of this function is to display the
+#' progress bar in the console, and it does not return any meaningful value.
+#' @noRd
+#'
 
-
-## Simple Progress Bar
-##
-## \code{progressBar} is a simple and highly modifiable function to present the progress of queued jobs. If you need most sophisticated functions to this propose, please visit \code{\link[progressr]{progressr}}.
-## @param current Current job no. For instance, if the 23rd estimation out of 400 is running, this value is 23.
-## @param total Total jobs which should be performed.
-## @param additionalStrings Any additional text desired to be included at the end of the output.
-##
-## @return print the progress bar
-## @seealso  \code{\link[progressr]{progressr}}
-## @examples
-## progressBar(23,400)
 progressBar<-function(current, total,additionalStrings="",
                       verbose = TRUE, use_message = FALSE){
   if (!interactive()) return(invisible()) # Skip in non-interactive environments
@@ -276,8 +294,8 @@ progressBar<-function(current, total,additionalStrings="",
 
   theFirstTimes<-floor(persentage*totalLines/100)
   theSecondTimes<-totalLines-theFirstTimes # floor((100-persentage)*totalLines/100)
-  theFirstPart<-paste0( rep("#",times=theFirstTimes)  ,collapse = "")
-  theSecondPart<-paste0(rep(" ",times=theSecondTimes),collapse = "")
+  theFirstPart<-strrep("#", theFirstTimes)
+  theSecondPart<-strrep(" ", theSecondTimes)
   txt <- sprintf("%% %s [ %s%s%s ] %s/%s %s",
                  persentage, theFirstPart, animate, theSecondPart,
                  current, total, additionalStrings)
@@ -292,7 +310,17 @@ progressBar<-function(current, total,additionalStrings="",
  # cat("\r",paste0("% ",persentage, " [ ", theFirstPart,animate,theSecondPart, "] ",current,"/",total," ",additionalStrings))
 }
 
-# Change the lag value in a string
+#' Replace Lag Variable in String
+#'
+#' The \code{replace_lag_var()} function is designed to replace placeholders for variable names and lag values in a given string. It takes a string with placeholders, a variable name (or vector of variable names), and a new lag value, and returns the string with the placeholders replaced accordingly. This function is particularly useful for dynamically generating strings that involve lagged variables in time series analysis or similar contexts.
+#' @param string The input string containing placeholders for variable names and lag values. The placeholders should be in the format \code{varName} for variable names and \code{lag} for lag values.
+#' @param varName A character vector of variable names to replace the \code{var
+#' Name} placeholder in the input string. If a single variable name is provided, it will replace the placeholder once. If a vector of variable names is provided, the function will return a vector of strings with each variable name replacing the placeholder in the input string.
+#' @param new_lag A character or numeric value to replace the \code{lag
+#' } placeholder in the input string. This value will be used to indicate the lag value in the resulting string(s).
+#' @return A string or a vector of strings with the \code{varName}
+#' and \code{lag} placeholders replaced by the provided variable names and lag value. If a single variable name is provided, the function returns a single string. If a vector of variable names is provided, the function returns a vector of strings, each with the corresponding variable name replaced in the input string.
+#' @noRd
 
 replace_lag_var <- function(string, varName, new_lag) {
   # Ensure varName is a character vector
@@ -300,14 +328,14 @@ replace_lag_var <- function(string, varName, new_lag) {
 
   # If varName is a single value, return a single string
   if (length(varName) == 1) {
-    result <- gsub("\\{varName\\}", varName, gsub("\\{lag\\}", new_lag, string))
+    result <- gsub("{varName}", varName, gsub("{lag}", new_lag, string, fixed = TRUE), fixed = TRUE)
     return(result)
   }
 
   # If varName is a vector, return a vector of replaced strings
-  result <- sapply(varName, function(var) {
-    gsub("\\{varName\\}", var, gsub("\\{lag\\}", new_lag, string))
-  })
+  result <- vapply(varName, function(var) {
+    gsub("{varName}", var, gsub("{lag}", new_lag, string, fixed = TRUE), fixed = TRUE)
+  }, character(1))
 
   return(result)
 }

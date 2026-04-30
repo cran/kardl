@@ -1,14 +1,23 @@
-
+#' Print and summary methods for kardl objects
+#' @description
+#' These methods provide custom print and summary outputs for various kardl object classes, including `
+#' kardl_mplier`, `kardl_boot`, `kardl_longrun`, `kardl_symmetric`, and `kardl_test`. The print methods display key information about the object, while the summary methods provide detailed summaries of the results, including statistical tests and decisions.
+#'
+#'
 #' @export
 #' @method print kardl_mplier
+#' @noRd
 print.kardl_mplier <- function(x, ...) {
   cat("kardl Dynamic Multiplier Object\n")
   cat("Horizon:", x$horizon, "\n")
-  print(x$mpsi)
+  print(x$mpsi, ...)
+  invisible(x)
 }
+
 
 #' @export
 #' @method summary kardl_mplier
+#' @noRd
 summary.kardl_mplier <- function(object, ...) {
 
   out <- list(
@@ -21,23 +30,28 @@ summary.kardl_mplier <- function(object, ...) {
 
 #' @export
 #' @method print summary.kardl_mplier
+#' @noRd
 print.summary.kardl_mplier <- function(x, ...) {
   cat("Summary of Dynamic Multipliers\n")
   cat("Horizon:", x$horizon, "\n\n")
-  print( x$summary)
+  print( x$summary, ...)
+  invisible(x)
 }
 
 #' @export
 #' @method print kardl_boot
+#' @noRd
 print.kardl_boot <- function(x, ...) {
   cat("kardl Bootstrap Results\n")
   cat("Confidence level:", x$level, "%\n")
   cat("Horizon:", x$horizon, "\n")
-  print(x$mpsi)
+  print(x$mpsi, ...)
+  invisible(x)
 }
 
 #' @export
 #' @method summary kardl_boot
+#' @noRd
 summary.kardl_boot <- function(object, ...) {
 
   out <- list(
@@ -50,14 +64,22 @@ summary.kardl_boot <- function(object, ...) {
 
 #' @export
 #' @method print summary.kardl_boot
+#' @noRd
 print.summary.kardl_boot <- function(x, ...) {
   cat("Summary of Dynamic Multipliers\n")
   cat("Horizon:", x$horizon, "\n\n")
-  print( x$summary)
+  print( x$summary, ...)
+  invisible(x)
 }
 
 #' @export
 #' @method plot kardl_mplier
+#' @srrstats {TS5.0} A plot method is implemented for `kardl_mplier` objects returned by `mplier()`.
+#' @srrstats {TS5.1} The horizontal axis of multiplier plots is labelled as the horizon or time-step index.
+#' @srrstats {TS5.2} The horizon variable is plotted on the horizontal axis in dynamic multiplier visualisations.
+#' @srrstats {TS5.3} Multiplier plots display the horizon index used in the model output.
+#' @srrstats {TS5.8} Multiplier plots distinguish positive and negative shock components by variable where asymmetric effects are present.
+#' @noRd
 plot.kardl_mplier <- function(x, variables ="all" , ...) {
   mpsi <- x$mpsi
   plots<-list()
@@ -69,7 +91,7 @@ plot.kardl_mplier <- function(x, variables ="all" , ...) {
     }else{
       for (variable in variables) {
         if(! variable %in% x$vars$independentVars){
-          warning(paste0( variable," is not exits among independent variables!"), call.=F)
+          warning(variable, " is not exits among independent variables!", call.=F)
         }else{
           plots[[variable]] <- mplierggplot(mpsi, x$vars,variable)
         }
@@ -84,10 +106,13 @@ plot.kardl_mplier <- function(x, variables ="all" , ...) {
 #' @import stats
 #' @export
 #' @method  summary kardl_longrun
+#' @srrstats {G3.1} Long-run multiplier standard errors returned in the summary are computed via the delta method using the fitted model's variance-covariance matrix.
+#' @srrstats {TS4.2} The summary documents coefficients, standard errors, t-values, and p-values for each long-run multiplier.
+#' @noRd
 summary.kardl_longrun <- function(object, ...) {
   objcoef <- object$original_model$coefficients
 
-  vcov_matrix = stats::vcov( object$original_model)
+  vcov_matrix <- stats::vcov( object$original_model)
 
   my_dep <- object$depvar
   my_indep <- object$indepvars
@@ -96,12 +121,12 @@ summary.kardl_longrun <- function(object, ...) {
 
   A <- - 1 / objcoef[my_dep]
 
-  lr_var <- sapply(names(multipliers_coef), function(i) {
+  lr_var <- vapply(names(multipliers_coef), function(i) {
     B <- objcoef[i] / (objcoef[my_dep]^2)
     (A^2) * vcov_matrix[i, i] +
       2 * A * B * vcov_matrix[i, my_dep] +
       (B^2) * vcov_matrix[my_dep, my_dep]
-  })
+  }, numeric(1))
 
   multipliers_coef_se <- sqrt(as.vector(lr_var))
   tvals <- multipliers_coef / multipliers_coef_se
@@ -133,14 +158,15 @@ summary.kardl_longrun <- function(object, ...) {
 
 #' @export
 #' @method print summary_kardl_longrun
-print.summary_kardl_longrun <- function(x, digits = max(3L, getOption("digits") - 3L), ...) {
+#' @noRd
+print.summary_kardl_longrun <- function(x, ...) {
   cat("\nCall:\n", paste(deparse(x$call), collapse = "\n"), "\n", sep = "")
 
   cat("\nEstimation type:\n")
   cat(x$estimation_type, "\n")
 
   cat("\nCoefficients:\n")
-  printCoefmat(x$coefficients, digits = digits, P.values = TRUE, has.Pvalue = TRUE)
+  printCoefmat(x$coefficients, ...)
 
   cat("\nNote:\n")
   cat(x$note, "\n")
@@ -150,6 +176,7 @@ print.summary_kardl_longrun <- function(x, digits = max(3L, getOption("digits") 
 
 #' @export
 #' @method print kardl_symmetric
+#' @noRd
 print.kardl_symmetric <- function(x, ...) {
   #print(x$allWald)
   # cat("\n==============================\n")
@@ -165,10 +192,12 @@ print.kardl_symmetric <- function(x, ...) {
     print(x$Swald, ...)
     cat("\n")
   }
+  invisible(x)
 }
 
 #' @export
 #' @method summary kardl_symmetric
+#' @noRd
 summary.kardl_symmetric <- function(object,level=0.05 ,...) {
   decision <- list()
   pValType<-ifelse(object$type == "Chisq","Pr(>Chisq)", "Pr(>F)")
@@ -201,6 +230,7 @@ summary.kardl_symmetric <- function(object,level=0.05 ,...) {
 
 #' @export
 #' @method print summary.kardl_symmetric
+#' @noRd
 print.summary.kardl_symmetric <- function(x, ...){
   if(x$type == "Chisq"){
     pValType <- "Pr(>Chisq)"
@@ -216,11 +246,15 @@ print.summary.kardl_symmetric <- function(x, ...){
     cat("Long-run symmetry tests:\n\n")
     for(v in rownames(x$Lwald)){
       cat("Test for variable: ",v,"\n")
-      cat(Valtype," statistic: ", x$Lwald[v,testLable], ", p-value: ", x$Lwald[v,pValType], "\n")
+      cat(Valtype, " statistic: ",
+          format(x$Lwald[v, testLable], digits = getOption("digits")),
+          ", p-value: ",
+          format(x$Lwald[v, pValType], digits = getOption("digits")),
+          "\n", sep = "")
       cat("Test Decision: ", x$decision$long_run[[v]], "\n")
       cat("Hypotheses:\n")
       cat(paste0("H0: ", x$Lhypotheses$H0[[v]], "\n"))
-      cat(paste0("H1: ", x$Lhypotheses$H1[[v]], "\n\n"))
+      cat(paste0("H1: ",enc2utf8( x$Lhypotheses$H1[[v]]), "\n\n"))
       # write F value and p-value
 
     }
@@ -231,21 +265,28 @@ print.summary.kardl_symmetric <- function(x, ...){
     cat("Short-run symmetry tests:\n\n")
     for(v in rownames(x$Swald)){
       cat("Test for variable: ",v,"\n")
-      cat(Valtype," statistic: ", x$Swald[v,testLable], ", p-value: ", x$Swald[v,pValType], "\n")
+
+      cat(Valtype," statistic: ",
+          format(x$Swald[v,testLable], digits = getOption("digits")),
+          ", p-value: ",
+          format(x$Swald[v,pValType], digits = getOption("digits")),
+          "\n")
       cat("Test Decision: ", x$decision$short_run[[v]], "\n")
       cat("Hypotheses:\n")
       cat(paste0("H0: ", x$Shypotheses$H0[[v]], "\n"))
-      cat(paste0("H1: ", x$Shypotheses$H1[[v]], "\n\n"))
+      cat(paste0("H1: ", enc2utf8(x$Shypotheses$H1[[v]]), "\n\n"))
       # write F value and p-value
 
     }
   }
+  invisible(x)
 
 }
 
 
 #' @export
 #' @method summary kardl_test
+#' @noRd
 summary.kardl_test <- function(object, ...){
     htestsummary(object,...)
 
@@ -253,20 +294,21 @@ summary.kardl_test <- function(object, ...){
 
 #' @export
 #' @method print summary_htest
+#' @noRd
 print.summary_htest <- function(x, ...){
   cat(x$method, "\n")
-  cat(names(x$statistic), " = ", unname( x$statistic),"\n")
+  cat(names(x$statistic), " = ", format(unname(x$statistic), digits = getOption("digits")),"\n")
   cat("k = ", x$k, "\n")
 
 
 
   cat("\nHypotheses:\n")
-  cat( paste0("H0: Coef(", paste0(x$varnames,collapse = ") = Coef(" ),") = 0"), "\n")
-  cat(paste0("H1: Coef(", paste0(x$varnames,collapse = ") \u2260 Coef(" ),")\u2260",  " 0"), "\n")
+  cat( paste0("H0: Coef(", paste(x$varnames,collapse = ") = Coef(" ),") = 0"), "\n")
+  cat(paste0("H1: Coef(", paste(x$varnames,collapse = ") \u2260 Coef(" ),")\u2260",  " 0"), "\n")
    # add x$decision
   cat("\nTest Decision: ", x$decision, "\n")
   cat("\nCritical Values (Case ",x$case,"):\n")
-  print(x$crit_vals)
+  print(x$crit_vals, ...)
   if (!is.null(x$notes)) {
     cat("\nNotes:\n")
     for (note in x$notes) {
@@ -274,10 +316,12 @@ print.summary_htest <- function(x, ...){
     }
     cat("\n")
   }
+  invisible(x)
 }
 
 #' @export
 #' @method print kardl_long_run
+#' @noRd
 print.kardl_long_run<- function(x, ...) {
   cat("Long-run multiplier estimate\n")
   cat("=================================\n")
@@ -289,6 +333,7 @@ print.kardl_long_run<- function(x, ...) {
 
 #' @export
 #' @method plot kardl_long_run
+#' @noRd
 plot.kardl_long_run <- function(x,  ...) {
   cat("WARNING: Residual diagnostic plots are meaningless for long-run estimators\n")
   if (interactive()) {
@@ -301,9 +346,10 @@ plot.kardl_long_run <- function(x,  ...) {
 
 #' @export
 #' @method print kardl_lm
+#' @noRd
 print.kardl_lm<- function(x, ...) {
   cat("Optimal lags for each variable (",x$argsInfo$criterion,"):\n")
-  cat(paste(sprintf("%s: %d", names(x$lagInfo$OptLag), x$lagInfo$OptLag), collapse = ", "  ),"\n")
+  cat(toString(sprintf("%s: %d", names(x$lagInfo$OptLag), x$lagInfo$OptLag)),"\n")
   NextMethod()  # continues with normal coefficient printing
   if (!is.null(x$notes)) {
     cat("\nNotes:\n")
@@ -312,5 +358,6 @@ print.kardl_lm<- function(x, ...) {
     }
     cat("\n")
   }
+  invisible(x)
 }
 

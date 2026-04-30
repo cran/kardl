@@ -2,7 +2,7 @@
 % Please edit documentation in R/longrun.R
 \name{kardl_longrun}
 \alias{kardl_longrun}
-\title{Calculate long-run multipliers from a KARDL model}
+\title{Compute Long-Run Multipliers from a kardl Model}
 \usage{
 kardl_longrun(model)
 }
@@ -12,18 +12,18 @@ kardl_longrun(model)
 \value{
 An object of class \code{kardl_long_run}, which is a list containing:
 \itemize{
-   \item \code{coefficients}: A named vector of long-run multipliers.
-   \item \code{residuals}: A vector of residuals from the long-run model.
-   \item \code{effects}: A vector of effects from the long-run model.
-   \item \code{rank}: The rank of the long-run model.
-   \item \code{fitted.values}: A vector of fitted values from the long-run model.
-   \item \code{assign}: A vector indicating the assignment of coefficients to terms in the long-run model.
-   \item \code{qr}: The QR decomposition of the design matrix of the long-run model.
-   \item \code{df.residual}: The degrees of freedom of the residuals of the long-run model.
-   \item \code{xlevels}: A list of factor levels used in the long-run model.
-   \item \code{call}: The matched call used to create the long-run model.
-   \item \code{terms}: The terms object of the long-run model.
-   \item \code{model}: The data frame used in the long-run model.
+\item \code{coefficients}: A named vector of long-run multipliers.
+\item \code{residuals}: A vector of residuals from the long-run model.
+\item \code{effects}: A vector of effects from the long-run model.
+\item \code{rank}: The rank of the long-run model.
+\item \code{fitted.values}: A vector of fitted values from the long-run model.
+\item \code{assign}: A vector indicating the assignment of coefficients to terms in the long-run model.
+\item \code{qr}: The QR decomposition of the design matrix of the long-run model.
+\item \code{df.residual}: The degrees of freedom of the residuals of the long-run model.
+\item \code{xlevels}: A list of factor levels used in the long-run model.
+\item \code{call}: The matched call used to create the long-run model.
+\item \code{terms}: The terms object of the long-run model.
+\item \code{model}: The data frame used in the long-run model.
 }
 }
 \description{
@@ -57,11 +57,13 @@ summary(long)
 
 
 # Using magrittr
+
+\dontshow{if (requireNamespace("magrittr", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(magrittr)
-
-imf_example_data \%>\% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-                           mode=c(1,2,3,0)) \%>\% kardl_longrun() \%>\% summary()
-
+     imf_example_data \%>\%
+     kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend, mode=c(1,2,3,0)) \%>\%
+     kardl_longrun() \%>\% summary()
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{kardl}}, \code{\link{pssf}}, \code{\link{psst}}

@@ -2,9 +2,16 @@
 % Please edit documentation in R/multipliers.R
 \name{bootstrap}
 \alias{bootstrap}
-\title{Produce Bootstrap Confidence Intervals for Dynamic Multipliers}
+\title{Bootstrap Confidence Intervals for Dynamic Multipliers}
 \usage{
-bootstrap(kmodel, horizon = 80, replications = 100, level = 95, minProb = 0)
+bootstrap(
+  kmodel,
+  horizon = 80,
+  replications = 100,
+  level = 95,
+  minProb = 0,
+  seed = NULL
+)
 }
 \arguments{
 \item{kmodel}{The model produced by the \code{\link{kardl}} function. This is the model object
@@ -16,12 +23,14 @@ The horizon defines the time frame for the analysis (e.g., 40 periods).}
 \item{replications}{An integer indicating the number of bootstrap replications to perform.
 Higher values increase accuracy but also computational time. Default is \code{100}.}
 
-\item{level}{A numeric value specifying the confidence level for the intervals (e.g., 95 for 95% confidence).
+\item{level}{A numeric value specifying the confidence level for the intervals (e.g., 95 for 95\% confidence).
 Default is \code{90}.}
 
 \item{minProb}{A numeric value specifying the minimum p-value threshold for including coefficients in the bootstrap.
 Coefficients with p-values above this threshold will be set to zero in the bootstrap samples. Default is \code{0} (no threshold).
 This parameter allows users to control the inclusion of coefficients in the bootstrap process based on their statistical significance. Setting a threshold can help focus the analysis on more relevant variables, but it may also exclude potentially important effects if set too stringently.}
+
+\item{seed}{An optional integer to set the random seed for reproducibility of the bootstrap results. If not provided, the bootstrap will use the current random state.}
 }
 \value{
 A list containing the following elements:
@@ -46,8 +55,6 @@ and lower confidence intervals. These values are provided for each variable and 
 }
 \examples{
 
-library(dplyr)
-
   # Example usage of the bootstrap function
 
 
@@ -59,7 +66,7 @@ library(dplyr)
 
  # Perform bootstrap with specific variables for plotting
  boot <-
-   bootstrap(kardl_model,   replications=5)
+   bootstrap(kardl_model,   replications=5, seed = 123L)
  # The boot object will include all plots for the specified variables
  # Displaying the boot object provides an overview of its components
  names(boot)
@@ -81,13 +88,13 @@ library(dplyr)
 
 
 
- # Using dplyr
- library(dplyr)
+\dontshow{if (requireNamespace("magrittr", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+library(magrittr)
 
    imf_example_data \%>\% kardl( CPI ~ PPI + asym(ER) +trend, maxlag=2) \%>\%
    bootstrap(replications=5) \%>\% plot(variable = "ER")
 
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{mplier}} for calculating dynamic multipliers

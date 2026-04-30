@@ -2,7 +2,7 @@
 % Please edit documentation in R/kardl.R
 \name{ecm}
 \alias{ecm}
-\title{Perform the Error Correction Model (ECM) test to assess cointegration in the model}
+\title{Estimate a Restricted ECM Model}
 \usage{
 ecm(
   data = NULL,
@@ -19,13 +19,12 @@ ecm(
 \item{data}{The data of analysis}
 
 \item{formula}{A formula specifying the long-run model equation. This formula defines the relationships
-       between the dependent variable and explanatory variables, including options for deterministic terms,
-       asymmetric variables, and a trend component.
+between the dependent variable and explanatory variables, including options for deterministic terms,
+asymmetric variables, and a trend component.
 
-       Example formula:
-       \code{y ~ x + z + Asymmetric(z) + Lasymmetric(x2 + x3) + Sasymmetric(x3 + x4) + deterministic(dummy1 + dummy2) + trend}
-
-
+\if{html}{\out{<div class="sourceCode">}}\preformatted{   Example formula:
+   \code{y ~ x + z + Asymmetric(z) + Lasymmetric(x2 + x3) + Sasymmetric(x3 + x4) + deterministic(dummy1 + dummy2) + trend}
+}\if{html}{\out{</div>}}
 
 \strong{\emph{Details}}
 
@@ -68,7 +67,7 @@ rules:
 
 \itemize{
 \item They can be freely combined within a single formula, for example:
-  \preformatted{
+\preformatted{
   y ~ . +
     Asymmetric(z) +
     Lasymmetric(x2 + x3) +
@@ -78,49 +77,45 @@ rules:
   }
 
 \item They must not be nested within one another. Valid usage:
-  \code{y ~ x + deterministic(dummy) + Asymmetric(z)}.
-  Invalid usage (to be avoided):
-  \code{y ~ x + deterministic(Asymmetric(z))} or
-  \code{y ~ x + Asymmetric(deterministic(dummy))}.
+\code{y ~ x + deterministic(dummy) + Asymmetric(z)}.
+Invalid usage (to be avoided):
+\code{y ~ x + deterministic(Asymmetric(z))} or
+\code{y ~ x + Asymmetric(deterministic(dummy))}.
 
 \item Where applicable, arguments are validated internally using
-  \code{match.arg()}. Consequently, abbreviated inputs are accepted
-  provided they uniquely identify a valid option. For example, if
-  \code{"asymmetric"} is an admissible value, specifying \code{"a"}
-  is sufficient. For clarity and reproducibility, however, full
-  argument names are recommended.
+\code{match.arg()}. Consequently, abbreviated inputs are accepted
+provided they uniquely identify a valid option. For example, if
+\code{"asymmetric"} is an admissible value, specifying \code{"a"}
+is sufficient. For clarity and reproducibility, however, full
+argument names are recommended.
 }
 
 These components may therefore be combined flexibly to construct
 a specification tailored to the empirical analysis.}
 
 \item{maxlag}{An integer specifying the maximum number of lags to be considered for the model.
-       The default value is \code{4}. This parameter sets an upper limit on the lag length during
-       the model estimation process.
-
+The default value is \code{4}. This parameter sets an upper limit on the lag length during
+the model estimation process.
 
 \strong{\emph{details}}
 
-
-       The \code{maxlag} parameter is crucial for defining the maximum lag length that the model
-       will evaluate when selecting the optimal lag structure based on the specified \code{criterion}.
-       It controls the computational effort and helps prevent overfitting by restricting the search
-       space for lag selection.
+The \code{maxlag} parameter is crucial for defining the maximum lag length that the model
+will evaluate when selecting the optimal lag structure based on the specified \code{criterion}.
+It controls the computational effort and helps prevent overfitting by restricting the search
+space for lag selection.
 \itemize{
 \item  If the data has a short time horizon or is prone to overfitting, consider reducing \code{maxlag}.
 \item  If the data is expected to have long-term dependencies, increasing \code{maxlag} may be necessary to capture the relevant dynamics.
 }
 
-       Setting an appropriate value for \code{maxlag} depends on the nature of your dataset and the
-       context of the analysis:
+Setting an appropriate value for \code{maxlag} depends on the nature of your dataset and the
+context of the analysis:
 \itemize{
 \item For small datasets or quick tests, use smaller values (e.g., \code{maxlag = 2}).
 \item For datasets with more observations or longer-term patterns, larger values (e.g., \code{maxlag = 8})  may be appropriate, though this increases computational time.
 }
 
-
 \strong{\emph{examples}}
-
 
 Using the default maximum lag (4)
 
@@ -135,94 +130,85 @@ Increasing the maximum lag to 8 for datasets with longer dependencies
 \code{kardl(data, MyFormula, maxlag = 8)}}
 
 \item{mode}{Specifies the mode of estimation and output control. This parameter determines how
-       the function handles lag estimation and what kind of feedback or control is provided during
-       the process. The available options are:
+the function handles lag estimation and what kind of feedback or control is provided during
+the process. The available options are:
 
 \itemize{
 \item \strong{"quick"} (default):
-        Displays progress and messages in the console while the function estimates the optimal lag values.
-        This mode is suitable for interactive use or for users who want to monitor the estimation process
-        in real-time. It provides detailed feedback for debugging or observation but may use additional
-        resources due to verbose output.
+Displays progress and messages in the console while the function estimates the optimal lag values.
+This mode is suitable for interactive use or for users who want to monitor the estimation process
+in real-time. It provides detailed feedback for debugging or observation but may use additional
+resources due to verbose output.
 
 \item \strong{"grid"} :
-        Displays progress and messages in the console while the function estimates the optimal lag values.
-        This mode is suitable for interactive use or for users who want to monitor the estimation process
-        in real-time. It provides detailed feedback for debugging or observation but may use additional
-        resources due to verbose output.
+Displays progress and messages in the console while the function estimates the optimal lag values.
+This mode is suitable for interactive use or for users who want to monitor the estimation process
+in real-time. It provides detailed feedback for debugging or observation but may use additional
+resources due to verbose output.
 
 \item \strong{"grid_custom"}:
-        Suppresses most or all console output, prioritizing faster execution and reduced resource usage
-        on PCs or servers. This mode is recommended for high-performance scenarios, batch processing,
-        or when the estimation process does not require user monitoring. Suitable for large-scale or
-        repeated runs where output is unnecessary.
+Suppresses most or all console output, prioritizing faster execution and reduced resource usage
+on PCs or servers. This mode is recommended for high-performance scenarios, batch processing,
+or when the estimation process does not require user monitoring. Suitable for large-scale or
+repeated runs where output is unnecessary.
 
 \item \strong{User-defined vector}:
-        A numeric vector of lag values specified by the user, allowing full customization of the lag
-        structure used in model estimation. When a user-defined vector is provided (e.g., `c(1, 2, 4, 5)`),
-        the function skips the lag optimization process and directly uses the specified lags.
+A numeric vector of lag values specified by the user, allowing full customization of the lag
+structure used in model estimation. When a user-defined vector is provided (e.g., \code{c(1, 2, 4, 5)}),
+the function skips the lag optimization process and directly uses the specified lags.
 
-        - Users can define lag values directly as a numeric vector. For example:
-          \code{mode = c(1, 2, 4, 5)} assigns lags of 1, 2, 4, and 5 to variables in the specified order.
-        - Alternatively, lag values can be assigned to variables by name for clarity and control. For example:
-          \code{mode = c(CPI = 2, ER_POS = 3, ER_NEG = 1, PPI = 3)} assigns lags to variables explicitly.
-        - Ensure that the lags are correctly designated by verifying the result using
-          \code{kardl_model$properLag} after estimation.
+Users can define lag values directly as a numeric vector. For example:
+\code{mode = c(1, 2, 4, 5)} assigns lags of 1, 2, 4, and 5 to variables in the specified order.
+Alternatively, lag values can be assigned to variables by name for clarity and control. For example:
+\code{mode = c(CPI = 2, ER_POS = 3, ER_NEG = 1, PPI = 3)} assigns lags to variables explicitly.
+Ensure that the lags are correctly designated by verifying the result using
+\code{kardl_model$properLag} after estimation.
 
-        \strong{\emph{Attention!}}
-        -A function-based criterion or user-defined function can be specified
-         for model selection, but this is only supported for \code{mode = "grid_custom"}
-         and \code{mode = "quick"}. The \code{mode = "grid"} option is restricted to
-         predefined criteria (e.g., AIC or BIC). For more information on available criteria,
-         see the \code{\link{modelCriterion}} function documentation.
-        - When using a numeric vector, ensure the order of lag values matches the variables in your formula.
-        - If using named vectors, double-check the variable names to avoid mismatches or unintended results.
-        - This mode bypasses the automatic lag optimization and assumes the user-defined lags are correct.
+\strong{\emph{Attention!}}
+A function-based criterion or user-defined function can be specified
+for model selection, but this is only supported for \code{mode = "grid_custom"}
+and \code{mode = "quick"}. The \code{mode = "grid"} option is restricted to
+predefined criteria (e.g., AIC or BIC). For more information on available criteria,
+see the \code{\link{modelCriterion}} function documentation.
+\itemize{
+\item When using a numeric vector, ensure the order of lag values matches the variables in your formula.
+\item If using named vectors, double-check the variable names to avoid mismatches or unintended results.
+\item This mode bypasses the automatic lag optimization and assumes the user-defined lags are correct.
 }
-
-
-       The `mode` parameter provides flexibility for different use cases:
-       - Use `"grid"` mode for debugging or interactive use where progress visibility is important.
-       - Use `"grid_custom"` mode to minimize overhead in computationally intensive tasks.
-       - Specify a user-defined vector to customize the lag structure based on prior knowledge or analysis.
-
-       Selecting the appropriate mode can improve the efficiency and usability of the function depending
-       on the user's requirements and the computational environment.}
+}}
 
 \item{criterion}{A string specifying the information criterion to be used for selecting the optimal lag structure.
-      The available options are:
+The available options are:
 \itemize{
 \item \strong{"AIC"}: Akaike Information Criterion (default). This criterion balances model fit and complexity,
-      favoring models that explain the data well with fewer parameters.
+favoring models that explain the data well with fewer parameters.
 \item \strong{"BIC"}: Bayesian Information Criterion. This criterion imposes a stronger penalty for model complexity
-      than AIC, making it more conservative in selecting models with fewer parameters.
+than AIC, making it more conservative in selecting models with fewer parameters.
 \item \strong{"AICc"}: Corrected Akaike Information Criterion. This is an adjusted version of AIC that accounts for small sample sizes,
-      making it more suitable when the number of observations is limited relative to the number of parameters.
+making it more suitable when the number of observations is limited relative to the number of parameters.
 \item \strong{"HQ"}: Hannan-Quinn Information Criterion. This criterion provides a compromise between AIC and BIC,
-      favoring models that balance fit and complexity without being overly conservative.
+favoring models that balance fit and complexity without being overly conservative.
 }
-      The criterion can be specified as a string (e.g., \code{"AIC"}) or as a user-defined function that takes a fitted model object.
-      Please visit the \code{\link{modelCriterion}} function documentation for more details on using custom criteria.}
+The criterion can be specified as a string (e.g., \code{"AIC"}) or as a user-defined function that takes a fitted model object.
+Please visit the \code{\link{modelCriterion}} function documentation for more details on using custom criteria.}
 
 \item{differentAsymLag}{A logical value indicating whether to allow different lag lengths for positive and negative decompositions.}
 
 \item{batch}{A string specifying the batch processing configuration in the format "current_batch/total_batches".
 If a user utilize grid or grid_custom mode and want to split the lag search into multiple batches, this parameter can be used to define the current batch and the total number of batches.
-      For example, "2/5" indicates that the current batch is the second out of a total of five batches.
-      The default value is "1/1", meaning that the entire lag search is performed in a single batch.}
+For example, "2/5" indicates that the current batch is the second out of a total of five batches.
+The default value is "1/1", meaning that the entire lag search is performed in a single batch.}
 
-\item{...}{Additional arguments that can be passed to the function. These arguments can be used to}
+\item{...}{Additional arguments that can be passed to the function. These arguments can be used to specify other settings or parameters that are not explicitly defined in the main arguments.}
 }
 \value{
 A list containing the results of the restricted ECM test, including:
 \itemize{
 \item \code{ecm}: The estimated ECM model objects including:
 \itemize{
-\item \code{case}: The case number used in the test (1, 2, 3, 4, or 5).
-\item \code{EcmResLagged}: The lagged error correction term used in the ECM model.
-\item \code{ecmL}: The estimated long-run model object.
-\item \code{shortrunEQ}: The estimated short-run model equation object.
 \item \code{longrunEQ}: The estimated long-run model equation object.
+\item \code{shortrunEQ}: The estimated short-run model equation
+\item \code{ecmL}: The estimated long-run model object.
 }
 \item \strong{argsInfo}: A list of input arguments used for the estimation. It includes the data, formula, maxlag, mode, criterion, differentAsymLag, and batch settings.
 \item \strong{extractedInfo}: A list containing extracted information from the input data and formula, such as variable names, deterministic terms, asymmetric variables, and the prepared dataset for estimation.
@@ -233,34 +219,30 @@ A list containing the results of the restricted ECM test, including:
 }
 }
 \description{
-This function is used to perform the Error Correction Model (ECM) test, which is designed to determine whether there is cointegration in the model. Cointegration indicates a long-term equilibrium relationship between variables, despite short-term deviations. The ECM test helps identify if such a long-term relationship exists by examining the short-run dynamics and adjusting for deviations from equilibrium. If the test confirms cointegration, it suggests that the variables move together over time, maintaining a stable long-term relationship. This is critical for ensuring that the model properly captures both short-term fluctuations and long-term equilibrium behavior.
+The \code{ecm} function estimates a restricted Error Correction Model (ECM) based on the provided data and model specification. This function is designed to test for cointegration using the PSS t Bound test, which assesses the presence of a long-term equilibrium relationship between the dependent variable and the independent variables in the model.
 }
 \section{Hypothesis testing}{
-
-The restricted ECM test, also known as the PSS t Bound test, is a statistical test used to assess the presence of cointegration in a model. Cointegration refers to a long-term equilibrium relationship between two or more time series variables. The PSS t Bound test is based on the work of Pesaran, Shin, and Smith (2001) and is particularly useful for models with small sample sizes.
 
 
 The null and alternative hypotheses for the restricted ECM test are as follows:
 
-  \deqn{\mathbf{H_{0}:} \theta  =   0}
-  \deqn{\mathbf{H_{1}:} \theta  \neq 0}
+\deqn{\mathbf{H_{0}:} \theta  =   0}
+\deqn{\mathbf{H_{1}:} \theta  \neq 0}
 
-  The null hypothesis (\eqn{H_{0}}) states that there is no cointegration in the model, meaning that the long-run relationship between the variables is not significant. The alternative hypothesis (\eqn{H_{1}}) suggests that there is cointegration, indicating a significant long-term relationship between the variables.
+The null hypothesis (\eqn{H_{0}}) states that there is no cointegration in the model, meaning that the long-run relationship between the variables is not significant. The alternative hypothesis (\eqn{H_{1}}) suggests that there is cointegration, indicating a significant long-term relationship between the variables.
 
-  The test statistic is calculated as the t-statistic of the coefficient of the error correction term (\eqn{\theta}) in the ECM model. If the absolute value of the t-statistic exceeds the critical value from the PSS t Bound table, we reject the null hypothesis in favor of the alternative hypothesis, indicating that cointegration is present.
+The test statistic is calculated as the t-statistic of the coefficient of the error correction term (\eqn{\theta}) in the ECM model. If the absolute value of the t-statistic exceeds the critical value from the PSS t Bound table, we reject the null hypothesis in favor of the alternative hypothesis, indicating that cointegration is present.
 
-  The cases for the restricted ECM Bound test are defined as follows:
-
-
+The cases for the restricted ECM Bound test are defined as follows:
 
 \itemize{
 \item \code{case 1}: No constant, no trend.
 
-  This case is used when the model does not include a constant term or a trend term. It is suitable for models where the variables are stationary and do not exhibit any long-term trends.
+This case is used when the model does not include a constant term or a trend term. It is suitable for models where the variables are stationary and do not exhibit any long-term trends.
 
-  The model is specified as follows:
+The model is specified as follows:
 
-  \deqn{
+\deqn{
 \begin{aligned}
 \Delta y_t =  \sum_{j=1}^{p} \gamma_j \Delta y_{t-j} + \sum_{i=1}^{k} \sum_{j=0}^{q_i} \beta_{ij} \Delta x_{i,t-j} + \theta (y_{t-1}  - \sum_{i=1}^{k} \alpha_i x_{i,t-1} ) + e_t
 \end{aligned}
@@ -268,9 +250,9 @@ The null and alternative hypotheses for the restricted ECM test are as follows:
 
 \item \code{case 2}: Restricted constant, no trend.
 
-  This case is used when the model includes a constant term but no trend term. It is suitable for models where the variables exhibit a long-term relationship but do not have a trend component.
-  The model is specified as follows:
-  \deqn{
+This case is used when the model includes a constant term but no trend term. It is suitable for models where the variables exhibit a long-term relationship but do not have a trend component.
+The model is specified as follows:
+\deqn{
   \begin{aligned}
   \Delta y_t &= \sum_{j=1}^{p} \gamma_j \Delta y_{t-j} + \sum_{i=1}^{k} \sum_{j=0}^{q_i} \beta_{ij} \Delta x_{i,t-j} + \theta (y_{t-1} - \alpha_0 - \sum_{i=1}^{k} \alpha_i x_{i,t-1} ) + e_t
   \end{aligned}
@@ -278,22 +260,22 @@ The null and alternative hypotheses for the restricted ECM test are as follows:
 
 \item \code{case 3}: Unrestricted constant, no trend.
 
-  This case is used when the model includes an unrestricted constant term but no trend term. It is suitable for models where the variables exhibit a long-term relationship with a constant but do not have a trend component.
+This case is used when the model includes an unrestricted constant term but no trend term. It is suitable for models where the variables exhibit a long-term relationship with a constant but do not have a trend component.
 
-  The model is specified as follows:
+The model is specified as follows:
 
-  \deqn{
+\deqn{
   \begin{aligned}
   \Delta y_t &= \sum_{j=1}^{p} \gamma_j \Delta y_{t-j} + \sum_{i=1}^{k} \sum_{j=0}^{q_i} \beta_{ij} \Delta x_{i,t-j} + \theta (y_{t-1} - \alpha_0 - \sum_{i=1}^{k} \alpha_i x_{i,t-1} ) + e_t
   \end{aligned}
     }
 \item \code{case 4}: Unrestricted Constant, restricted trend.
 
-  This case is used when the model includes an unrestricted constant term and a restricted trend term. It is suitable for models where the variables exhibit a long-term relationship with a constant and a trend component.
+This case is used when the model includes an unrestricted constant term and a restricted trend term. It is suitable for models where the variables exhibit a long-term relationship with a constant and a trend component.
 
-  The model is specified as follows:
+The model is specified as follows:
 
-  \deqn{
+\deqn{
   \begin{aligned}
   \Delta y_t &= \phi + \sum_{j=1}^{p} \gamma_j \Delta y_{t-j} + \sum_{i=1}^{k} \sum_{j=0}^{q_i} \beta_{ij} \Delta x_{i,t-j} + \theta (y_{t-1} - \pi (t-1) - \sum_{i=1}^{k} \alpha_i x_{i,t-1} ) + e_t
   \end{aligned}
@@ -301,8 +283,7 @@ The null and alternative hypotheses for the restricted ECM test are as follows:
 \item \code{case 5}: Unrestricted constant, unrestricted trend.
 }
 
-
- The Error Correction Model (ECM) is specified as follows:
+The Error Correction Model (ECM) is specified as follows:
 \deqn{
 \begin{aligned}
 \Delta y_t &= \phi + \varphi t +  \sum_{j=1}^{p} \gamma_j \Delta y_{t-j} + \sum_{i=1}^{k} \sum_{j=0}^{q_i} \beta_{ij} \Delta x_{i,t-j} + \theta (y_{t-1}  - \sum_{i=1}^{k} \alpha_i x_{i,t-1} ) + e_t
@@ -310,93 +291,81 @@ The null and alternative hypotheses for the restricted ECM test are as follows:
 }
 }
 
+\section{Notation of reported coefficients}{
+
+
+In the reported coefficients, the prefix \code{L} denotes lagged variables,
+where the accompanying number indicates the lag order, and \code{.d.} denotes
+first differences. Accordingly, \code{L1.PPI} represents the first lag of the
+level of \code{PPI} (long-run component), while \code{L3.d.PPI} denotes the
+third lag of the first-differenced \code{PPI} (short-run component).
+
+In addition, the suffixes \code{_POS} and \code{_NEG} indicate the positive
+and negative partial sum components of a variable, respectively. This notation
+is used by default and remains valid unless modified through the
+\code{kardl_set()} function.
+}
+
 \examples{
 
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(tidyr))
-suppressPackageStartupMessages(library(ggplot2))
+# Sample article: THE DYNAMICS OF EXCHANGE RATE PASS-THROUGH TO DOMESTIC PRICES IN TURKEY
+kardl_set(
+  formula = CPI ~ ER + PPI + asym(ER) + deterministic(covid) + trend,
+  data = imf_example_data,
+  maxlag = 3
+)
 
+# Using the grid mode with batch processing to decrease execution time
+ecm_model_grid <- ecm(mode = "grid")
+ecm_model_grid
 
- # Sample article: THE DYNAMICS OF EXCHANGE RATE PASS-THROUGH TO DOMESTIC PRICES IN TURKEY
- kardl_set(formula=CPI~ER+PPI+asym(ER)+deterministic(covid)+trend ,
-           data=imf_example_data ,
-           maxlag=3)
+# Checking the cointegration test results using Pesaran t test
+psst(ecm_model_grid)
 
- ecm_model_grid<- ecm(mode = "grid")
- ecm_model_grid
+# Getting the details of psst result
+summary(psst(ecm_model_grid))
 
- # Checking the cointegration test results using pesaran t test
- psst(ecm_model_grid)
- # Getting the details of psst result
- summary(psst(ecm_model_grid))
+# Using the grid_custom mode for faster execution without console output
+ecm_model <- ecm(imf_example_data, mode = "grid_custom", criterion = "HQ", batch = "2/3")
+ecm_model
 
- # using the grid_custom mode for faster execution without console output
- ecm_model<- imf_example_data \%>\% ecm(mode = "grid_custom")
- ecm_model
+# Estimating the model with user-defined lag values
+ecm_model2 <- ecm(mode = c(2, 1, 1, 3))
 
- # Estimating the model with user-defined lag values
- ecm_model2<-ecm(mode = c( 2    ,  1    ,  1   ,   3 ))
- # Getting the results
- ecm_model2
- # Getting the summary of the results
- summary(ecm_model2)
- # OR using pipe operator
- imf_example_data \%>\% ecm(CPI~PPI+asym(ER) +trend,case=4) \%>\% summary()
+# Getting the results
+ecm_model2
 
- # For increasing the performance of finding the most fitted lag vector
- ecm(mode = "grid_custom")
- # Setting max lag instead of default value [4]
- ecm(maxlag = 2, mode = "grid_custom")
- # Using another criterion for finding the best lag
- ecm(criterion = "HQ", mode = "grid_custom")
+# Getting the summary of the results
+summary(ecm_model2)
 
+# Alternative specification
+summary(ecm(imf_example_data, CPI ~ PPI + asym(ER) + trend, case = 4))
 
+# For increasing the performance of finding the most fitted lag vector
+ecm(mode = "grid_custom")
 
- # For using different lag values for negative and positive decompositions of non-linear variables
+# Setting max lag instead of default value [4]
+ecm(maxlag = 2, mode = "grid_custom")
 
- # setting the same lags for positive and negative decompositions.
- kardl_set(differentAsymLag = FALSE)
+# Using another criterion for finding the best lag
+ecm(criterion = "HQ", mode = "grid_custom")
 
- diffAsymLags<-ecm( mode = "grid_custom")
- diffAsymLags$lagInfo$OptLag
+# For using different lag values for positive and negative decompositions
+# Setting the same lags for positive and negative decompositions
+kardl_set(differentAsymLag = FALSE)
 
- # setting the different lags for positive and negative decompositions
- sameAsymLags<-ecm(differentAsymLag = TRUE , mode = "grid_custom" )
- sameAsymLags$lagInfo$OptLag
+diffAsymLags <- ecm(mode = "grid_custom")
+diffAsymLags$lagInfo$OptLag
 
+# Setting different lags for positive and negative decompositions
+sameAsymLags <- ecm(differentAsymLag = TRUE, mode = "grid_custom")
+sameAsymLags$lagInfo$OptLag
 
- # Setting the preffixes and suffixes for non-linear variables
- kardl_reset()
- kardl_set(AsymPrefix = c("asyP_","asyN_"), AsymSuffix = c("_PP","_NN"))
- customizedNames<-ecm(imf_example_data, CPI~ER+PPI+asym(ER) )
- customizedNames
-
- # For having the lags plot
-
- #  ecm_model_grid[["LagCriteria"]] is a matrix, convert it to a data frame
- LagCriteria <- as.data.frame(ecm_model_grid$lagInfo$LagCriteria)
- # Rename columns for easier access and convert relevant columns to numeric
- colnames(LagCriteria) <- c("lag", "AIC", "BIC", "AICc", "HQ")
- LagCriteria <- LagCriteria \%>\%  mutate(across(c(AIC, BIC, HQ), as.numeric))
-
- # Pivot the data to a long format excluding AICc
-
- LagCriteria_long <- LagCriteria \%>\%  select(-AICc) \%>\%
-   pivot_longer(cols = c(AIC, BIC, HQ), names_to = "Criteria", values_to = "Value")
- # Find the minimum value for each criterion
- min_values <- LagCriteria_long \%>\%  group_by(Criteria) \%>\%
-   slice_min(order_by = Value) \%>\%  ungroup()
-
- # Create the ggplot with lines, highlight minimum values, and add labels
- ggplot(LagCriteria_long, aes(x = lag, y = Value, color = Criteria, group = Criteria)) +
-   geom_line() +
-   geom_point(data = min_values, aes(x = lag, y = Value), color = "red", size = 3, shape = 8) +
-   geom_text(data = min_values, aes(x = lag, y = Value, label = lag),
-             vjust = 1.5, color = "black", size = 3.5) +
-   labs(title = "Lag Criteria Comparison", x = "Lag Configuration",  y = "Criteria Value") +
-   theme_minimal() +
-   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+# Setting the prefixes and suffixes for nonlinear variables
+kardl_reset()
+kardl_set(AsymPrefix = c("asyP_", "asyN_"), AsymSuffix = c("_PP", "_NN"))
+customizedNames <- ecm(imf_example_data, CPI ~ ER + PPI + asym(ER))
+customizedNames
 
 }
 \seealso{

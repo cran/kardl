@@ -2,7 +2,7 @@
 % Please edit documentation in R/tests.R
 \name{symmetrytest}
 \alias{symmetrytest}
-\title{Symmetry Test for non-linear KARDL Models}
+\title{Symmetry Test for Nonlinear kardl Models}
 \usage{
 symmetrytest(kmodel, vars = NULL, component = "both", type = "F", ...)
 }
@@ -44,10 +44,10 @@ The hypotheses for the long-run variables are:
 \deqn{    H_{1}: -\frac{\eta^{+}_{1}}{\eta_{0}} \neq -\frac{\eta^{-}_{1}}{\eta_{0}}
  }
 
- The hypotheses for the short-run variables are:
-  \deqn{
+The hypotheses for the short-run variables are:
+\deqn{
   H_{0}: \sum_{j = 0}^{q}{\beta^{+}_{j}} = \sum_{j = 0}^{m}{\beta^{-}_{j}} }
-  \deqn{H_{1}: \sum_{j = 0}^{q}{\beta^{+}_{j}} \neq \sum_{j = 0}^{m}{\beta^{-}_{j}}
+\deqn{H_{1}: \sum_{j = 0}^{q}{\beta^{+}_{j}} \neq \sum_{j = 0}^{m}{\beta^{-}_{j}}
   }
 }
 \details{

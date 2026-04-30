@@ -2,7 +2,7 @@
 % Please edit documentation in R/tests.R
 \name{narayan}
 \alias{narayan}
-\title{Narayan Test}
+\title{Narayan Bounds Test}
 \usage{
 narayan(kmodel, case = 3, signif_level = "auto")
 }
@@ -21,10 +21,12 @@ Acceptable values are 1, 2, 3, 4, 5, and "auto". If "auto" is chosen, the functi
 }}
 
 \item{signif_level}{Character or numeric. Specifies the significance level to be used in the function.
-
 Acceptable values are "auto", "0.10", "0.1", "0.05", "0.025", and "0.01".
 If a numeric value is provided, it will be converted to a character string.
-If "auto" is chosen, the function determines the significance level automatically.
+
+When \code{"auto"} is selected, the function determines the significance level
+sequentially, starting from the most stringent level (\code{"0.01"}) and proceeding
+to \code{"0.025"}, \code{"0.05"}, and \code{"0.10"} until a suitable level is identified.
 Invalid values will result in an error.}
 }
 \value{
@@ -48,26 +50,25 @@ This function performs the Narayan test, which is designed to assess cointegrati
 
 The null hypothesis (H0) of the F Bound test is that there is no cointegration among the variables in the model. In other words, it tests whether the long-term relationship between the variables is statistically significant. If the calculated F-statistic exceeds the upper critical value, we reject the null hypothesis and conclude that there is cointegration. Conversely, if the F-statistic falls below the lower critical value, we fail to reject the null hypothesis, indicating no evidence of cointegration. If the F-statistic lies between the two critical values, the result is inconclusive.
 
-
- \deqn{
+\deqn{
   \Delta {y}_t =  \psi  + \varphi t  + \eta _0   {y}_{t-1}  + \sum_{i=1}^{k} {  \eta _i   {x}_{i,t-1} }  +   \sum_{j=1}^{p} { \gamma_{j}  \Delta {y}_{t-j} }+ \sum_{i=1}^{k} {\sum_{j=0}^{q_i} { \beta_{ij}   \Delta {x}_{i,t-j} } }+ e_t
 }
 
 \describe{
-  \item{Cases 1, 3, 5:}{
-     \deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k  = 0}
-     \deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k} \neq 0}
-  }
-  \item{Case 2:}{
-     \deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k =  \psi  = 0}
-     \deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k}  \neq \psi \neq 0}
-  }
+\item{Cases 1, 3, 5:}{
+\deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k  = 0}
+\deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k} \neq 0}
+}
+\item{Case 2:}{
+\deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k =  \psi  = 0}
+\deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k}  \neq \psi \neq 0}
+}
 
-  \item{Case 4:}{
-     \deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k = \varphi = 0}
-     \deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k}  \neq \varphi \neq 0}
-      }
-  }
+\item{Case 4:}{
+\deqn{\mathbf{H_{0}:} \eta_0  = \eta_1  = \dots = \eta_k = \varphi = 0}
+\deqn{\mathbf{H_{1}:} \eta_{0} \neq \eta_{1} \neq \dots \neq \eta_{k}  \neq \varphi \neq 0}
+}
+}
 }
 
 \examples{
@@ -89,15 +90,20 @@ my_summary$crit_vals
 
 # Using magrittr :
 
+\dontshow{if (requireNamespace("magrittr", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(magrittr)
-imf_example_data \%>\% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-                           mode=c(1,2,3,0)) \%>\% narayan()
+  imf_example_data \%>\%
+  kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+                        mode=c(1,2,3,0)) \%>\% narayan()
 
-# Getting details of the test results using magrittr:
-imf_example_data \%>\% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-                           mode=c(1,2,3,0)) \%>\% narayan() \%>\% summary()
+  # Getting details of the test results using magrittr:
+   imf_example_data \%>\%
+   kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+                           mode=c(1,2,3,0)) \%>\%
+   narayan() \%>\% summary()
 
 
+\dontshow{\}) # examplesIf}
 }
 \references{
 Narayan, P. K. (2005). The saving and investment nexus for China: evidence from cointegration tests. Applied economics, 37(17), 1979-1990.

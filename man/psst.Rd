@@ -2,7 +2,7 @@
 % Please edit documentation in R/tests.R
 \name{psst}
 \alias{psst}
-\title{PSS t Bound Test}
+\title{Pesaran, Shin, and Smith t Bounds Test}
 \usage{
 psst(kmodel, case = 3, signif_level = "auto")
 }
@@ -22,21 +22,24 @@ Acceptable values are 1, 2, 3, 4, 5, and "auto". If "auto" is chosen, the functi
 \item{signif_level}{Character or numeric. Specifies the significance level to be used in the function.
 Acceptable values are "auto", "0.10", "0.1", "0.05", "0.025", and "0.01".
 If a numeric value is provided, it will be converted to a character string.
-If "auto" is chosen, the function determines the significance level automatically.
+
+When \code{"auto"} is selected, the function determines the significance level
+sequentially, starting from the most stringent level (\code{"0.01"}) and proceeding
+to \code{"0.025"}, \code{"0.05"}, and \code{"0.10"} until a suitable level is identified.
 Invalid values will result in an error.}
 }
 \value{
 The function returns an object of class "htest" containing the following components:
-\itemize{
-\item{statistic: The calculated t-statistic for the test.}
-\item{method: A description of the test performed.}
-\item{data.name: The name of the data used in the test.}
-\item{k: The number of independent variables in the model.}
-\item{notes: Any notes or warnings related to the test results, such as
+\describe{
+\item{statistic}{The calculated t-statistic for the test.}
+\item{method}{A description of the test performed.}
+\item{data.name}{The name of the data used in the test.}
+\item{k}{The number of independent variables in the model.}
+\item{notes}{Any notes or warnings related to the test results, such as
 sample size considerations or adjustments made to the case based on model characteristics.}
-\item{sig: The significance level used for the test, either specified by the user or determined automatically.}
-\item{alternative: The alternative hypothesis being tested.}
-\item{case: The case used for the test, either specified by the user or determined automatically based on the model's characteristics.}
+\item{sig}{The significance level used for the test, either specified by the user or determined automatically.}
+\item{alternative}{The alternative hypothesis being tested.}
+\item{case}{The case used for the test, either specified by the user or determined automatically based on the model's characteristics.}
 }
 }
 \description{
@@ -49,13 +52,12 @@ This function performs the Pesaran, Shin, and Smith (PSS) t Bound test, which is
 
 The PSS t Bound test evaluates the null hypothesis that the long-run coefficients of the model are equal to zero against the alternative hypothesis that at least one of them is non-zero. The test is conducted under different cases, depending on the model specification.
 
-
- \deqn{
+\deqn{
   \Delta {y}_t =  \psi  + \varphi t  + \eta _0   {y}_{t-1}  + \sum_{i=1}^{k} {  \eta _i   {x}_{i,t-1} }  +   \sum_{j=1}^{p} { \gamma_{j}  \Delta {y}_{t-j} }+ \sum_{i=1}^{k} {\sum_{j=0}^{q_i} { \beta_{ij}   \Delta {x}_{i,t-j} } }+ e_t
 }
 
-  \deqn{\mathbf{H_{0}:} \eta_0   = 0}
-  \deqn{\mathbf{H_{1}:} \eta_{0}  \neq 0}
+\deqn{\mathbf{H_{0}:} \eta_0   = 0}
+\deqn{\mathbf{H_{1}:} \eta_{0}  \neq 0}
 }
 
 \examples{
@@ -78,15 +80,21 @@ my_summary$crit_vals
 
 # Using magrittr :
 
+\dontshow{if (requireNamespace("magrittr", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(magrittr)
-imf_example_data \%>\% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-                           mode=c(1,2,3,0)) \%>\% psst()
+     imf_example_data \%>\%
+     kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+                           mode=c(1,2,3,0))    \%>\%
+                           psst()
 
-# Getting details of the test results using magrittr:
-imf_example_data \%>\% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-                           mode=c(1,2,3,0)) \%>\% psst() \%>\% summary()
+   # Getting details of the test results using magrittr:
+   imf_example_data \%>\%
+   kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
+                           mode=c(1,2,3,0)) \%>\%
+   psst() \%>\% summary()
 
 
+\dontshow{\}) # examplesIf}
 }
 \references{
 Pesaran, M. H., Shin, Y. and Smith, R. (2001), "Bounds Testing Approaches to the Analysis of Level Relationship", Journal of Applied Econometrics, 16(3), 289-326.

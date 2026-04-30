@@ -1,6 +1,6 @@
 
 
-#' Calculate long-run multipliers from a KARDL model
+#' Compute Long-Run Multipliers from a kardl Model
 #'
 #' This function calculates the long-run parameters of a KARDL model estimated using the \code{kardl} function. The long-run parameters are calculated by dividing the negative of the coefficients of the independent variables by the coefficient of the dependent variable. If an intercept is included in the model, it is also standardized by dividing it by the negative of the long-run parameter of the dependent variable.
 #'
@@ -40,6 +40,14 @@
 #' }
 #' @export
 #' @import stats
+#'
+#'
+#' @srrstats {G1.3}  Statistical terms such as "long-run multipliers", "standard errors", "t-statistics", and "p-values" are clearly defined and used consistently throughout the documentation and examples.
+#' @srrstats {G2.0} The function validates that `model` is a `kardl_lm` object before extracting coefficients and covariance matrices.
+#' @srrstats {G3.1} Long-run multiplier standard errors are computed using the delta method applied to the fitted model variance-covariance matrix.
+#' @srrstats {G3.1a} Documentation describes the delta-method formula for standard errors and the partial derivatives A and B used in the calculation.
+#' @srrstats {TS4.2} The return value is documented: `coefficients`, `residuals`, `fitted.values`, `df.residual`, `call`, `terms`, and `model` are all described.
+#' @srrstats {TS4.0b} The return value uses the explicit class `kardl_longrun`.
 #' @importFrom msm deltamethod
 #' @seealso \code{\link{kardl}}, \code{\link{pssf}}, \code{\link{psst}}
 #' @examples
@@ -56,10 +64,12 @@
 #'
 #'
 #' # Using magrittr
-#' library(magrittr)
 #'
-#' imf_example_data %>% kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-#'                            mode=c(1,2,3,0)) %>% kardl_longrun() %>% summary()
+#' @examplesIf requireNamespace("magrittr", quietly = TRUE)
+#' library(magrittr)
+#'      imf_example_data %>%
+#'      kardl(CPI~ER+PPI+asym(ER)+deterministic(covid)+trend, mode=c(1,2,3,0)) %>%
+#'      kardl_longrun() %>% summary()
 #'
 
 kardl_longrun <- function(model) {
@@ -91,7 +101,7 @@ kardl_longrun <- function(model) {
   qty <- qr.qty(qr_X, mydata[, my_dep])
   eff <- numeric(length(mydata[, my_dep]))
   eff[qr_X$pivot[1:qr_X$rank]] <- qty[1:qr_X$rank]
-  eff[-(1:ncol(qr_X$qr))] <- qty[-(1:qr_X$rank)]
+  eff[-seq_len(ncol(qr_X$qr))] <- qty[-(1:qr_X$rank)]
   names(eff) <- names(multipliers_coef)
 
   my_terms <- as.formula(

@@ -1,4 +1,4 @@
-#' Estimate an ARDL or NARDL model with automatic lag selection
+#' Estimate ARDL and NARDL Models with Automatic Lag Selection
 #'
 #' This function estimates an Autoregressive Distributed Lag (ARDL) or Nonlinear ARDL (NARDL) model based on the provided data and model formula.
 #' It allows for flexible specification of variables, including deterministic terms, asymmetric variables, and trend components.
@@ -14,25 +14,37 @@
 #'  }
 #'
 #' Where:
-#' - \eqn{y_t} is the dependent variable at time t.
-#' - \eqn{c} is the constant term.
-#' - \eqn{\eta_0} is the coefficient of the lagged dependent variable.
-#' - \eqn{\gamma_j} are the coefficients of the lagged differences of the dependent variable.
-#' - \eqn{\eta^+_i} and \eqn{\eta^-_i} are the coefficients of the positive and negative decompositions of the independent variables, respectively.
-#' - \eqn{\eta_i} are the coefficients of the independent variables that do not have asymmetric decompositions.
-#' - \eqn{\beta^+_{ij}} and \eqn{\beta^-_{ij}} are the coefficients of the lagged differences of the positive and negative decompositions of the independent variables, respectively.
-#' - \eqn{\beta_{ij}} are the coefficients of the lagged differences of the independent variables that do not have asymmetric decompositions.
-#' - \eqn{e_t} is the error term at time t.
-#' - \eqn{p} is the maximum lag length for the dependent variable.
-#' - \eqn{q^+_i} and \eqn{q^-_i} are the maximum lag lengths for the positive and negative decompositions of the independent variables, respectively.
-#' - \eqn{q_i} is the maximum lag length for the independent variables that do not have asymmetric decompositions.
-#' - \eqn{m} is the number of independent variables with asymmetric decompositions.
-#' - \eqn{k} is the total number of independent variables.
-#' - \eqn{\Delta} denotes the first difference operator.
-#' - \eqn{x^+_{i,t}} and \eqn{x^-_{i,t}} represent the positive and negative decompositions of the independent variable \eqn{x_i} at time t, respectively.
+#' \itemize{
+#' \item \eqn{y_t} is the dependent variable at time t.
+#' \item \eqn{c} is the constant term.
+#' \item \eqn{\eta_0} is the coefficient of the lagged dependent variable.
+#' \item \eqn{\gamma_j} are the coefficients of the lagged differences of the dependent variable.
+#' \item \eqn{\eta^+_i} and \eqn{\eta^-_i} are the coefficients of the positive and negative decompositions of the independent variables, respectively.
+#' \item \eqn{\eta_i} are the coefficients of the independent variables that do not have asymmetric decompositions.
+#' \item \eqn{\beta^+_{ij}} and \eqn{\beta^-_{ij}} are the coefficients of the lagged differences of the positive and negative decompositions of the independent variables, respectively.
+#' \item \eqn{\beta_{ij}} are the coefficients of the lagged differences of the independent variables that do not have asymmetric decompositions.
+#' \item \eqn{e_t} is the error term at time t.
+#' \item \eqn{p} is the maximum lag length for the dependent variable.
+#' \item \eqn{q^+_i} and \eqn{q^-_i} are the maximum lag lengths for the positive and negative decompositions of the independent variables, respectively.
+#' \item \eqn{q_i} is the maximum lag length for the independent variables that do not have asymmetric decompositions.
+#' \item \eqn{m} is the number of independent variables with asymmetric decompositions.
+#' \item \eqn{k} is the total number of independent variables.
+#' \item \eqn{\Delta} denotes the first difference operator.
+#' \item \eqn{x^+_{i,t}} and \eqn{x^-_{i,t}} represent the positive and negative decompositions of the independent variable \eqn{x_i} at time t, respectively.
+#' }
 #'
+#' @section Notation of reported coefficients:
 #'
+#' In the reported coefficients, the prefix \code{L} denotes lagged variables,
+#' where the accompanying number indicates the lag order, and \code{.d.} denotes
+#' first differences. Accordingly, \code{L1.PPI} represents the first lag of the
+#' level of \code{PPI} (long-run component), while \code{L3.d.PPI} denotes the
+#' third lag of the first-differenced \code{PPI} (short-run component).
 #'
+#' In addition, the suffixes \code{_POS} and \code{_NEG} indicate the positive
+#' and negative partial sum components of a variable, respectively. This notation
+#' is used by default and remains valid unless modified through the
+#' \code{kardl_set()} function.
 #'
 #'
 #' @param data The data of analysis
@@ -121,17 +133,17 @@
 #' \strong{\emph{details}}
 #'
 #'
-#'        The \code{maxlag} parameter is crucial for defining the maximum lag length that the model
-#'        will evaluate when selecting the optimal lag structure based on the specified \code{criterion}.
-#'        It controls the computational effort and helps prevent overfitting by restricting the search
-#'        space for lag selection.
+#' The \code{maxlag} parameter is crucial for defining the maximum lag length that the model
+#' will evaluate when selecting the optimal lag structure based on the specified \code{criterion}.
+#' It controls the computational effort and helps prevent overfitting by restricting the search
+#' space for lag selection.
 #' \itemize{
 #' \item  If the data has a short time horizon or is prone to overfitting, consider reducing \code{maxlag}.
 #' \item  If the data is expected to have long-term dependencies, increasing \code{maxlag} may be necessary to capture the relevant dynamics.
 #' }
 #'
-#'        Setting an appropriate value for \code{maxlag} depends on the nature of your dataset and the
-#'        context of the analysis:
+#' Setting an appropriate value for \code{maxlag} depends on the nature of your dataset and the
+#' context of the analysis:
 #' \itemize{
 #' \item For small datasets or quick tests, use smaller values (e.g., \code{maxlag = 2}).
 #' \item For datasets with more observations or longer-term patterns, larger values (e.g., \code{maxlag = 8})  may be appropriate, though this increases computational time.
@@ -139,7 +151,6 @@
 #'
 #'
 #' \strong{\emph{examples}}
-#'
 #'
 #' Using the default maximum lag (4)
 #'
@@ -152,9 +163,6 @@
 #' Increasing the maximum lag to 8 for datasets with longer dependencies
 #'
 #' \code{kardl(data, MyFormula, maxlag = 8)}
-
-
-
 #'
 #' @param mode Specifies the mode of estimation and output control. This parameter determines how
 #'        the function handles lag estimation and what kind of feedback or control is provided during
@@ -180,36 +188,31 @@
 #'         repeated runs where output is unnecessary.
 #'
 #' \item \strong{User-defined vector}:
-#'         A numeric vector of lag values specified by the user, allowing full customization of the lag
-#'         structure used in model estimation. When a user-defined vector is provided (e.g., `c(1, 2, 4, 5)`),
-#'         the function skips the lag optimization process and directly uses the specified lags.
+#' A numeric vector of lag values specified by the user, allowing full customization of the lag
+#' structure used in model estimation. When a user-defined vector is provided (e.g., `c(1, 2, 4, 5)`),
+#' the function skips the lag optimization process and directly uses the specified lags.
 #'
-#'         - Users can define lag values directly as a numeric vector. For example:
-#'           \code{mode = c(1, 2, 4, 5)} assigns lags of 1, 2, 4, and 5 to variables in the specified order.
-#'         - Alternatively, lag values can be assigned to variables by name for clarity and control. For example:
-#'           \code{mode = c(CPI = 2, ER_POS = 3, ER_NEG = 1, PPI = 3)} assigns lags to variables explicitly.
-#'         - Ensure that the lags are correctly designated by verifying the result using
-#'           \code{kardl_model$properLag} after estimation.
+#' Users can define lag values directly as a numeric vector. For example:
+#' \code{mode = c(1, 2, 4, 5)} assigns lags of 1, 2, 4, and 5 to variables in the specified order.
+#' Alternatively, lag values can be assigned to variables by name for clarity and control. For example:
+#' \code{mode = c(CPI = 2, ER_POS = 3, ER_NEG = 1, PPI = 3)} assigns lags to variables explicitly.
+#' Ensure that the lags are correctly designated by verifying the result using
+#' \code{kardl_model$properLag} after estimation.
 #'
-#'         \strong{\emph{Attention!}}
-#'         -A function-based criterion or user-defined function can be specified
-#'          for model selection, but this is only supported for \code{mode = "grid_custom"}
-#'          and \code{mode = "quick"}. The \code{mode = "grid"} option is restricted to
-#'          predefined criteria (e.g., AIC or BIC). For more information on available criteria,
-#'          see the \code{\link{modelCriterion}} function documentation.
-#'         - When using a numeric vector, ensure the order of lag values matches the variables in your formula.
-#'         - If using named vectors, double-check the variable names to avoid mismatches or unintended results.
-#'         - This mode bypasses the automatic lag optimization and assumes the user-defined lags are correct.
+#' \strong{\emph{Attention!}}
+#' A function-based criterion or user-defined function can be specified
+#' for model selection, but this is only supported for \code{mode = "grid_custom"}
+#' and \code{mode = "quick"}. The \code{mode = "grid"} option is restricted to
+#' predefined criteria (e.g., AIC or BIC). For more information on available criteria,
+#' see the \code{\link{modelCriterion}} function documentation.
+#' \itemize{
+#' \item When using a numeric vector, ensure the order of lag values matches the variables in your formula.
+#' \item If using named vectors, double-check the variable names to avoid mismatches or unintended results.
+#' \item This mode bypasses the automatic lag optimization and assumes the user-defined lags are correct.
+#' }
 #' }
 #'
 #'
-#'        The `mode` parameter provides flexibility for different use cases:
-#'        - Use `"grid"` mode for debugging or interactive use where progress visibility is important.
-#'        - Use `"grid_custom"` mode to minimize overhead in computationally intensive tasks.
-#'        - Specify a user-defined vector to customize the lag structure based on prior knowledge or analysis.
-#'
-#'        Selecting the appropriate mode can improve the efficiency and usability of the function depending
-#'        on the user's requirements and the computational environment.
 #' @param criterion A string specifying the information criterion to be used for selecting the optimal lag structure.
 #'       The available options are:
 #' \itemize{
@@ -231,22 +234,38 @@
 #'       For example, "2/5" indicates that the current batch is the second out of a total of five batches.
 #'       The default value is "1/1", meaning that the entire lag search is performed in a single batch.
 #'
-#' @param ... Additional arguments that can be passed to the function. These arguments can be used to
+#' @param ... Additional arguments that can be passed to the function. These arguments can be used to specify other settings or parameters that are not explicitly defined in the main arguments.
 #'
 #'@return An object of class \code{kardl_lm} containing the estimated ARDL or NARDL model.
 #' The object includes the following components:
-#' \itemize{
-#' \item \strong{argsInfo}: A list of input arguments used for the estimation. It includes the data, formula, maxlag, mode, criterion, differentAsymLag, and batch settings.
-#' \item \strong{extractedInfo}: A list containing extracted information from the input data and formula, such as variable names, deterministic terms, asymmetric variables, and the prepared dataset for estimation.
-#' \item \strong{timeInfo}: A list containing timing information for the estimation process, including start time, end time, and total duration.
-#' \item \strong{lagInfo}: A list containing lag selection information, including the optimal lag configuration and criteria values for different lag combinations.
-#' \item \strong{estInfo}: A list containing estimation details, such as the type of model, estimation method, model formula, number of parameters (k), number of observations (n), start and end points of the fitted values, and total time span.
-#' \item \strong{model}: The fitted linear model object of class \code{lm} representing the estimated ARDL or NARDL model.
-#'
+#' \describe{
+#' \item{argsInfo}{A list of input arguments used for the estimation. It includes the data, formula, maxlag, mode, criterion, differentAsymLag, and batch settings.}
+#' \item{extractedInfo}{A list containing extracted information from the input data and formula, such as variable names, deterministic terms, asymmetric variables, and the prepared dataset for estimation.}
+#' \item{timeInfo}{A list containing timing information for the estimation process, including start time, end time, and total duration.}
+#' \item{lagInfo}{A list containing lag selection information, including the optimal lag configuration and criteria values for different lag combinations.}
+#' \item{estInfo}{A list containing estimation details, such as the type of model, estimation method, model formula, number of parameters (k), number of observations (n), start and end points of the fitted values, and total time span.}
+#' \item{model}{The fitted linear model object of class \code{lm} representing the estimated ARDL or NARDL model.}
 #' }
 #'
 #'
 #' @seealso  \code{\link{ecm}}, \code{\link{kardl_set}}, \code{\link{kardl_get}}, \code{\link{kardl_reset}}, \code{\link{modelCriterion}}
+#'
+#' @srrstats {G1.1} The package documentation describes `kardl` as an R implementation and extension of ARDL and NARDL workflows, with emphasis on mixed symmetric and asymmetric regressors, flexible lag selection, and dynamic multiplier methods.
+#' @srrstats {G2.0} Main input arguments including `formula`, `data`, `maxlag`, `mode`, `criterion`, and `differentAsymLag` are validated before estimation proceeds.
+#' @srrstats {G2.0a} The `formula` argument expects a single language object specifying the long-run ARDL equation; `maxlag` must be a positive integer; `mode` accepts predefined strings or a numeric lag vector.
+#' @srrstats {G2.1} The function checks that `formula` is a language object and that `data` contains all variables referenced in the formula before estimation.
+#' @srrstats {G2.3} Character-valued arguments such as `mode` and `criterion` are matched against predefined acceptable values via `match.arg()` internally.
+#' @srrstats {G2.3a} The `criterion` argument is matched against `c("AIC", "BIC", "AICc", "HQ")`; the `mode` argument against `c("quick", "grid", "grid_custom")`.
+#' @srrstats {G2.4} Formula parsing and data alignment are performed before estimation so all subsequent routines operate on a consistent internal representation.
+#' @srrstats {G2.4a} The `maxlag` argument is treated as an integer count before constructing lagged regressors.
+#' @srrstats {G2.13} Missing observations introduced by lagging and differencing are handled during model-frame construction before estimation.
+#' @srrstats {G2.14} Observations unavailable after lag construction are excluded from the estimation sample.
+#' @srrstats {TS1.0} The function accepts time-ordered data and constructs lagged and differenced variables internally for ARDL and NARDL estimation.
+#' @srrstats {TS1.3} A central preparation workflow parses the formula, constructs lagged variables, and returns a uniform internal model data structure.
+#' @srrstats {TS4.0} The fitted model is returned as an object of class `kardl_lm` with dedicated `print`, `summary`, and accessor methods.
+#' @srrstats {TS4.0b} The return value uses the explicit class `kardl_lm`.
+
+
 #' @export
 #'
 #' @import lmtest stats
@@ -254,9 +273,6 @@
 #'
 #' @examples
 #'
-#' suppressPackageStartupMessages(library(dplyr))
-#' suppressPackageStartupMessages(library(tidyr))
-#' suppressPackageStartupMessages(library(ggplot2))
 #'
 #' # Sample article: THE DYNAMICS OF EXCHANGE RATE PASS-THROUGH TO DOMESTIC PRICES IN TURKEY
 #'
@@ -266,33 +282,30 @@
 #' ) # setting the default values of the kardl function
 #'
 #'
+#' # using the grid_custom mode with batch processing
 #'
-#' kardl_model_grid<-kardl( mode = "grid")
+#' kardl_model_grid<-kardl( mode = "grid_custom",batch = "2/3",criterion = "BIC")
 #' kardl_model_grid
 #'
-#' kardl_model<- imf_example_data %>% kardl(mode = "grid_custom")
-#' kardl_model
 #' kardl_model2<-kardl(mode = c( 2    ,  1    ,  1   ,   3 ))
 #'
 #' # Getting the results
 #' kardl_model2
 #'
 #' # Getting the summary of the results
-#' summary(kardl_model)
+#' summary(kardl_model2)
 #'
-#'   # OR
-#'   imf_example_data %>% kardl(formula=CPI~PPI+Asymmetric(ER)) %>% summary()
+#' # using '.' in the formula means that all variables in the data will be used
 #'
-#' # using . in the formula means that all variables in the data will be used
-#'
-#' kardl(formula=CPI~.+deterministic(covid),mode = "grid")
+#' fit_bic <- kardl(formula=CPI~.+deterministic(covid))
+#' fit_bic
 #'
 #' # Setting max lag instead of default value [4]
 #' kardl(imf_example_data,
 #'       CPI~ER+PPI+Lasymmetric(ER),
 #'       maxlag = 3, mode = "grid_custom")
 #'
-#' # Using another criterion for finding the best lag#'
+#' # Using another criterion for finding the best lag
 #' kardl_set(criterion = "HQ") # setting the criterion to HQ
 #' kardl( mode = "grid_custom")
 #'
@@ -308,39 +321,15 @@
 #' same$lagInfo$OptLag
 #' dif$lagInfo$OptLag
 #'
-#' # Setting the preffixes and suffixes for non-linear variables
-#' kardl_set(AsymPrefix = c("asyP_","asyN_"), AsymSuffix = c("_PP","_NN"))
-#' kardl()
+#' # Optional: use magrittr if available
+#' @examplesIf requireNamespace("magrittr", quietly = TRUE)
+#' library(magrittr)
+#'   kardl_model_pipe <-  imf_example_data %>%
+#'     kardl(mode = "grid_custom")
 #'
-#' # For having the lags plot
+#'   kardl_model_pipe
 #'
-#' #  kardl_model_grid[["LagCriteria"]] is a matrix, convert it to a data frame
-#' LagCriteria <- as.data.frame(kardl_model_grid$lagInfo$LagCriteria)
-#' # Rename columns for easier access and convert relevant columns to numeric
-#' colnames(LagCriteria) <- c("lag", "AIC", "BIC", "AICc", "HQ")
-#'
-#' LagCriteria <- LagCriteria %>%  mutate(across(c(AIC, BIC, HQ), as.numeric))
-#'
-#' # Pivot the data to a long format excluding AICc
-#'
-#'  LagCriteria_long <- LagCriteria %>%
-#'   select(-AICc) %>%
-#'   pivot_longer(cols = c(AIC, BIC, HQ), names_to = "Criteria", values_to = "Value")
-#'
-#'  # Find the minimum value for each criterion
-#'  min_values <- LagCriteria_long %>%  group_by(Criteria) %>%
-#'   slice_min(order_by = Value) %>%  ungroup()
-#'
-#'  # Create the ggplot with lines, highlight minimum values, and add labels
-#'  ggplot2::ggplot(LagCriteria_long, aes(x = lag, y = Value, color = Criteria, group = Criteria)) +
-#'   geom_line() +
-#'   geom_point(data = min_values, aes(x = lag, y = Value), color = "red", size = 3, shape = 8) +
-#'   geom_text(data = min_values, aes(x = lag, y = Value, label = lag),
-#'             vjust = 1.5, color = "black", size = 3.5) +
-#'   labs(title = "Lag Criteria Comparison ", x = "Lag Configuration",  y = "Criteria Value") +
-#'   theme_minimal() +
-#'   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#'
+
 
 kardl <- function(data = NULL, formula = NULL,
                   maxlag  = NULL,
@@ -355,16 +344,16 @@ kardl <- function(data = NULL, formula = NULL,
   otherargsInfo <- list(...)
   kardlVars <- lmerge(argsInfo,otherargsInfo)
   myNames <- names(kardlVars)
-  for (i in 1:length(kardlVars)) {
+  for (i in seq_along(kardlVars)) {
     name <- myNames[i]
-    if(nzchar(name)==FALSE) {
+    if(!nzchar(name)) {
       kardlVars[[i]] <- NULL
       next
     }
     if (is.null(kardlVars[[name]])) {
       kardlVars[[name]] <- kardl_get(name)
       if (is.null(kardlVars[[name]])) {
-        stop(paste0("No ",name," provided. Please supply `",name,"` or set it with kardl_set(",name," = ...)."),
+        stop("No ", name, " provided. Please supply `", name, "` or set it with kardl_set(", name, " = ...).",
              call. = FALSE)
       }
       attr(kardlVars[[name]], "source") <- "kardl_set"
@@ -378,14 +367,13 @@ kardl <- function(data = NULL, formula = NULL,
 }
 
 
+#' Estimate a Restricted ECM Model
 #'
-#' Perform the Error Correction Model (ECM) test to assess cointegration in the model
+#' The `ecm` function estimates a restricted Error Correction Model (ECM) based on the provided data and model specification. This function is designed to test for cointegration using the PSS t Bound test, which assesses the presence of a long-term equilibrium relationship between the dependent variable and the independent variables in the model.
 #'
-#' This function is used to perform the Error Correction Model (ECM) test, which is designed to determine whether there is cointegration in the model. Cointegration indicates a long-term equilibrium relationship between variables, despite short-term deviations. The ECM test helps identify if such a long-term relationship exists by examining the short-run dynamics and adjusting for deviations from equilibrium. If the test confirms cointegration, it suggests that the variables move together over time, maintaining a stable long-term relationship. This is critical for ensuring that the model properly captures both short-term fluctuations and long-term equilibrium behavior.
 #' @inheritParams kardl
-#'
+#' @inheritSection kardl Notation of reported coefficients
 #' @section Hypothesis testing:
-#' The restricted ECM test, also known as the PSS t Bound test, is a statistical test used to assess the presence of cointegration in a model. Cointegration refers to a long-term equilibrium relationship between two or more time series variables. The PSS t Bound test is based on the work of Pesaran, Shin, and Smith (2001) and is particularly useful for models with small sample sizes.
 #'
 #'
 #' The null and alternative hypotheses for the restricted ECM test are as follows:
@@ -464,11 +452,9 @@ kardl <- function(data = NULL, formula = NULL,
 #' \itemize{
 #' \item \code{ecm}: The estimated ECM model objects including:
 #' \itemize{
-#' \item \code{case}: The case number used in the test (1, 2, 3, 4, or 5).
-#' \item \code{EcmResLagged}: The lagged error correction term used in the ECM model.
-#' \item \code{ecmL}: The estimated long-run model object.
-#' \item \code{shortrunEQ}: The estimated short-run model equation object.
 #' \item \code{longrunEQ}: The estimated long-run model equation object.
+#' \item \code{shortrunEQ}: The estimated short-run model equation
+#' \item \code{ecmL}: The estimated long-run model object.
 #' }
 #' \item \strong{argsInfo}: A list of input arguments used for the estimation. It includes the data, formula, maxlag, mode, criterion, differentAsymLag, and batch settings.
 #' \item \strong{extractedInfo}: A list containing extracted information from the input data and formula, such as variable names, deterministic terms, asymmetric variables, and the prepared dataset for estimation.
@@ -478,101 +464,80 @@ kardl <- function(data = NULL, formula = NULL,
 #' \item \strong{model}: The fitted linear model object of class \code{lm} representing the estimated ARDL or NARDL model.
 #' }
 #'
+#' @srrstats {G2.0} Input arguments `formula`, `data`, `maxlag`, `mode`, `criterion`, `differentAsymLag`, and `batch` are validated before the ECM is estimated.
+#' @srrstats {G2.1} The function checks that `formula` is a valid language object and that `data` contains all model variables before proceeding.
+#' @srrstats {TS2.0} ECM estimation assumes a regular ordered sequence after preprocessing; structurally missing observations created by lagging are handled explicitly.
+#' @srrstats {TS2.1} Missing-data handling is part of the model-preparation step, not a separate imputation system.
+#' @srrstats {TS4.0} The fitted ECM is returned as an object of class `kardl_lm` with dedicated `print` and `summary` methods.
 #'
 #'
-#'
-#'
+
 #' @export
 #' @seealso \code{\link{kardl}} \code{\link{pssf}}  \code{\link{psst}}   \code{\link{ecm}}  \code{\link{narayan}}
 #'
+#'
 #' @examples
 #'
-#' suppressPackageStartupMessages(library(dplyr))
-#' suppressPackageStartupMessages(library(tidyr))
-#' suppressPackageStartupMessages(library(ggplot2))
+#' # Sample article: THE DYNAMICS OF EXCHANGE RATE PASS-THROUGH TO DOMESTIC PRICES IN TURKEY
+#' kardl_set(
+#'   formula = CPI ~ ER + PPI + asym(ER) + deterministic(covid) + trend,
+#'   data = imf_example_data,
+#'   maxlag = 3
+#' )
 #'
+#' # Using the grid mode with batch processing to decrease execution time
+#' ecm_model_grid <- ecm(mode = "grid")
+#' ecm_model_grid
 #'
-#'  # Sample article: THE DYNAMICS OF EXCHANGE RATE PASS-THROUGH TO DOMESTIC PRICES IN TURKEY
-#'  kardl_set(formula=CPI~ER+PPI+asym(ER)+deterministic(covid)+trend ,
-#'            data=imf_example_data ,
-#'            maxlag=3)
+#' # Checking the cointegration test results using Pesaran t test
+#' psst(ecm_model_grid)
 #'
-#'  ecm_model_grid<- ecm(mode = "grid")
-#'  ecm_model_grid
+#' # Getting the details of psst result
+#' summary(psst(ecm_model_grid))
 #'
-#'  # Checking the cointegration test results using pesaran t test
-#'  psst(ecm_model_grid)
-#'  # Getting the details of psst result
-#'  summary(psst(ecm_model_grid))
+#' # Using the grid_custom mode for faster execution without console output
+#' ecm_model <- ecm(imf_example_data, mode = "grid_custom", criterion = "HQ", batch = "2/3")
+#' ecm_model
 #'
-#'  # using the grid_custom mode for faster execution without console output
-#'  ecm_model<- imf_example_data %>% ecm(mode = "grid_custom")
-#'  ecm_model
+#' # Estimating the model with user-defined lag values
+#' ecm_model2 <- ecm(mode = c(2, 1, 1, 3))
 #'
-#'  # Estimating the model with user-defined lag values
-#'  ecm_model2<-ecm(mode = c( 2    ,  1    ,  1   ,   3 ))
-#'  # Getting the results
-#'  ecm_model2
-#'  # Getting the summary of the results
-#'  summary(ecm_model2)
-#'  # OR using pipe operator
-#'  imf_example_data %>% ecm(CPI~PPI+asym(ER) +trend,case=4) %>% summary()
+#' # Getting the results
+#' ecm_model2
 #'
-#'  # For increasing the performance of finding the most fitted lag vector
-#'  ecm(mode = "grid_custom")
-#'  # Setting max lag instead of default value [4]
-#'  ecm(maxlag = 2, mode = "grid_custom")
-#'  # Using another criterion for finding the best lag
-#'  ecm(criterion = "HQ", mode = "grid_custom")
+#' # Getting the summary of the results
+#' summary(ecm_model2)
 #'
+#' # Alternative specification
+#' summary(ecm(imf_example_data, CPI ~ PPI + asym(ER) + trend, case = 4))
 #'
+#' # For increasing the performance of finding the most fitted lag vector
+#' ecm(mode = "grid_custom")
 #'
-#'  # For using different lag values for negative and positive decompositions of non-linear variables
+#' # Setting max lag instead of default value [4]
+#' ecm(maxlag = 2, mode = "grid_custom")
 #'
-#'  # setting the same lags for positive and negative decompositions.
-#'  kardl_set(differentAsymLag = FALSE)
+#' # Using another criterion for finding the best lag
+#' ecm(criterion = "HQ", mode = "grid_custom")
 #'
-#'  diffAsymLags<-ecm( mode = "grid_custom")
-#'  diffAsymLags$lagInfo$OptLag
+#' # For using different lag values for positive and negative decompositions
+#' # Setting the same lags for positive and negative decompositions
+#' kardl_set(differentAsymLag = FALSE)
 #'
-#'  # setting the different lags for positive and negative decompositions
-#'  sameAsymLags<-ecm(differentAsymLag = TRUE , mode = "grid_custom" )
-#'  sameAsymLags$lagInfo$OptLag
+#' diffAsymLags <- ecm(mode = "grid_custom")
+#' diffAsymLags$lagInfo$OptLag
 #'
+#' # Setting different lags for positive and negative decompositions
+#' sameAsymLags <- ecm(differentAsymLag = TRUE, mode = "grid_custom")
+#' sameAsymLags$lagInfo$OptLag
 #'
-#'  # Setting the preffixes and suffixes for non-linear variables
-#'  kardl_reset()
-#'  kardl_set(AsymPrefix = c("asyP_","asyN_"), AsymSuffix = c("_PP","_NN"))
-#'  customizedNames<-ecm(imf_example_data, CPI~ER+PPI+asym(ER) )
-#'  customizedNames
+#' # Setting the prefixes and suffixes for nonlinear variables
+#' kardl_reset()
+#' kardl_set(AsymPrefix = c("asyP_", "asyN_"), AsymSuffix = c("_PP", "_NN"))
+#' customizedNames <- ecm(imf_example_data, CPI ~ ER + PPI + asym(ER))
+#' customizedNames
 #'
-#'  # For having the lags plot
-#'
-#'  #  ecm_model_grid[["LagCriteria"]] is a matrix, convert it to a data frame
-#'  LagCriteria <- as.data.frame(ecm_model_grid$lagInfo$LagCriteria)
-#'  # Rename columns for easier access and convert relevant columns to numeric
-#'  colnames(LagCriteria) <- c("lag", "AIC", "BIC", "AICc", "HQ")
-#'  LagCriteria <- LagCriteria %>%  mutate(across(c(AIC, BIC, HQ), as.numeric))
-#'
-#'  # Pivot the data to a long format excluding AICc
-#'
-#'  LagCriteria_long <- LagCriteria %>%  select(-AICc) %>%
-#'    pivot_longer(cols = c(AIC, BIC, HQ), names_to = "Criteria", values_to = "Value")
-#'  # Find the minimum value for each criterion
-#'  min_values <- LagCriteria_long %>%  group_by(Criteria) %>%
-#'    slice_min(order_by = Value) %>%  ungroup()
-#'
-#'  # Create the ggplot with lines, highlight minimum values, and add labels
-#'  ggplot(LagCriteria_long, aes(x = lag, y = Value, color = Criteria, group = Criteria)) +
-#'    geom_line() +
-#'    geom_point(data = min_values, aes(x = lag, y = Value), color = "red", size = 3, shape = 8) +
-#'    geom_text(data = min_values, aes(x = lag, y = Value, label = lag),
-#'              vjust = 1.5, color = "black", size = 3.5) +
-#'    labs(title = "Lag Criteria Comparison", x = "Lag Configuration",  y = "Criteria Value") +
-#'    theme_minimal() +
-#'    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#'
-#'
+
 ecm<-function(data = NULL, formula = NULL,
               maxlag  = NULL,
               mode    = NULL,
@@ -587,7 +552,7 @@ ecm<-function(data = NULL, formula = NULL,
 
 EcmData<-get_proper$model
 
-longrunEQ<- paste0(replace_lag_var(.kardl_Settings_env$LongCoef ,get_proper$extractedInfo$dependentVar,1)  ," ~ " , paste0( replace_lag_var(.kardl_Settings_env$LongCoef ,get_proper$extractedInfo$longRunVars[-1],1) ,collapse = " + "))
+longrunEQ<- paste0(replace_lag_var(.kardl_Settings_env$LongCoef ,get_proper$extractedInfo$dependentVar,1)  ," ~ " , paste( replace_lag_var(.kardl_Settings_env$LongCoef ,get_proper$extractedInfo$longRunVars[-1],1) ,collapse = " + "))
 longrunEQ<- as.formula(longrunEQ)
 
   ecmL<-lm(longrunEQ,EcmData)
@@ -622,7 +587,7 @@ ecmS <-lm( shortrunEQ, EcmData)
   lagInfo=get_proper$lagInfo
   )
 
-  ecmList$estInfo$type="ecm"
+  ecmList$estInfo$type<-"ecm"
   ecmOutput<-lmerge(ecmList,ecmS)
   if(coef(ecmS)[["EcmRes"]]>=0){
     notesArray <- c(notesArray, "The coefficient of the error correction term (EcmRes) is non-negative. This may indicate a lack of long-run equilibrium adjustment.")
@@ -638,20 +603,21 @@ ecmS <-lm( shortrunEQ, EcmData)
 }
 
 
-#' Model Selection Criterion
+#' Model Selection Criteria
 #'
 #' Computes a model selection criterion (AIC, BIC, AICc, or HQ) or applies a user-defined function
 #' to evaluate a statistical model.
 #'
+#'
 #' @param estModel An object containing the fitted model. The object should include at least:
 #' \itemize{
-#' \item \code{estModel$model} – the actual fitted model object (e.g., from \code{lm}, \code{glm}).
-#' \item \code{k} – the number of estimated parameters.
-#' \item \code{n} – the sample size.
+#' \item \code{estModel$model} - the actual fitted model object (e.g., from \code{lm}, \code{glm}).
+#' \item \code{k} - the number of estimated parameters.
+#' \item \code{n} - the sample size.
 #' }
 #' @param cr A character string specifying the criterion to compute.
 #'           Options are \code{"AIC"}, \code{"BIC"}, \code{"AICc"}, and \code{"HQ"}. Alternatively,
-#'           a user-defined function can be provided.
+#'           a user-defined function can be provided. See details below for more information on using custom criteria.
 #' @param ... Additional arguments passed to the user-defined criterion function if \code{cr} is a function.
 #'
 #' @return A numeric value representing the selected criterion, normalized by the sample size if one of the predefined options is used.
@@ -672,7 +638,7 @@ ecmS <-lm( shortrunEQ, EcmData)
 #' \item \strong{"AIC"}:  \eqn{ \frac{2k - 2\ell}{n} } Akaike Information Criterion divided by \code{n}.
 #' \item \strong{"BIC"}:  \eqn{ \frac{\log(n) \cdot k - 2\ell}{n} } Bayesian Information Criterion divided by \code{n}.
 #' \item \strong{"AICc"}: \eqn{ \frac{2k(k+1)}{n - k - 1} + \frac{2k - 2\ell}{n} } Corrected Akaike Information Criterion divided by \code{n}.
-#' \item \strong{"HQ"}: \eqn{ \frac{2 \log(\log(n)) \cdot k - 2\ell}{n} } Hannan–Quinn Criterion divided by \code{n}.
+#' \item \strong{"HQ"}: \eqn{ \frac{2 \log(\log(n)) \cdot k - 2\ell}{n} } Hannan-Quinn Criterion divided by \code{n}.
 #' }
 #'
 #' where:
@@ -684,25 +650,37 @@ ecmS <-lm( shortrunEQ, EcmData)
 #'
 #' If \code{cr} is a function, it is called with the fitted model and any additional arguments passed through \code{...}.
 #' @seealso \code{\link{kardl}}
+#'
+#' @srrstats {G1.6} This function provides criteria for model selection, including AIC, BIC, AICc, and HQ, which can be used in R based model selection processes too.
+#' @srrstats {G2.3} The `cr` argument is matched against `c("AIC", "BIC", "AICc", "HQ")` via `match.arg()` when a string is supplied.
+#' @srrstats {G3.0} Numerical comparisons in criterion calculations use tolerance-based floating-point arithmetic where appropriate.
+#'
+#'
 #' @examples
 #'
-#' # Example usage of modelCriterion function with a linear model
+#' # Example usage of modelCriterion function with a simple linear model
 #' mylm<- lm(mpg ~ wt + hp, data = mtcars)
 #' modelCriterion(mylm, AIC )
-#' modelCriterion(mylm, "BIC" )
-#' mm<-AIC(mylm)
-#'  class(mm) == class(modelCriterion(mylm, "AIC"))
+#' modelCriterion(mylm, "AIC" )
 #'
 #'  # Example usage of modelCriterion function with a kardl model
 #'  kardl_model <- kardl(imf_example_data,
 #'                       CPI ~ ER + PPI + asym(ER) + deterministic(covid) + trend,
 #'                       mode = c(1, 2, 3, 0))
+#'
+#'  # Using AIC as the kardl package's built-in criterion function which is different
+#'  # from the base R AIC function.
 #'  modelCriterion(kardl_model, "AIC")
+#'
+#'  # Using the base R AIC function directly on the fitted model object
 #'  modelCriterion(kardl_model, AIC)
+#'  # Using the base R AIC function outside of modelCriterion to compute AIC for the fitted model
 #'  AIC(kardl_model)
+#'
+#'  # Using BIC as the criterion for the kardl model which is different from the base R BIC function.
 #'  modelCriterion(kardl_model, "BIC")
 #'
-#'  # Using a custom criterion function
+#'  # Using a custom criterion function that divides AIC by the sample size
 #'  my_cr_fun <- function(mod, ...) { AIC(mod) / length(mod$model[[1]]) }
 #'  modelCriterion(kardl_model, my_cr_fun)
 #'
@@ -721,10 +699,16 @@ modelCriterion<-function(estModel,cr,...){
 }
 
 
+#'  Model Estimation Dispatcher
+#'
+#' This function serves as a dispatcher for estimating the ARDL or NARDL model based on the specified mode in the input arguments. It determines the appropriate estimation method to use (e.g., "quick", "grid_custom", "grid", or user-defined) and calls the corresponding S3 method for model estimation.
+#' @param spec A list containing the prepared specifications for model estimation, including extracted information and arguments.
+#' @param ... Additional arguments that can be passed to the specific estimation methods.
+#' @return The estimated model object based on the specified mode.
+#' @noRd
 
 makemodel<-function(spec,...){
-
-  myMethod<-T
+  myMethod<-"quick"
   # if(is.vector(inputs$mode))
   if(is.vector(spec$argsInfo$mode[1]) && is.numeric(spec$argsInfo$mode) && isFALSE(isFALSE(spec$argsInfo$mode)) )  {
     class(myMethod)<- "user"
@@ -736,14 +720,19 @@ makemodel<-function(spec,...){
 
 
 
-# Estimation the model by quick lags
-#
-#If the lags of short-run variables are determined by user, the results will be obtained with \code{userDefinedModel}
-# @param inputs All inputs of making model.
-# @param ... Other inputs
-#
-# @return
-
+#' Quick Model Estimation Method
+#'
+#' This function implements the "quick" estimation method for ARDL or NARDL models.
+#' It performs a stepwise search to find the optimal lag structure based on the specified
+#' criterion. The function iteratively tests different lag combinations and evaluates the
+#'  model using the provided criterion until it converges to the best lag configuration.
+#' @param spec A list containing the prepared specifications for model estimation,
+#' including extracted information and arguments.
+#' @param ... Additional arguments that can be passed to the function.
+#' @return An object of class \code{kardl_lm} containing the estimated
+#' ARDL or NARDL model based on the "quick" estimation method.
+#' @noRd
+#'
 #' @export
 makemodel.quick<-function(spec , ...  ){#model,data,inputs){
   start_time <- Sys.time()
@@ -779,7 +768,7 @@ makemodel.quick<-function(spec , ...  ){#model,data,inputs){
     order1 <- rep(i, Xlength)
     Base_cr <- myEst(order1)
     toporders<-rbind(toporders,c(order1 ,Base_cr))
-    while (ardl_converge == FALSE) {
+    while (!ardl_converge ) {
       for(j in 1:(Xlength-1)) {
         order2_back <- order1
         order2_forth <- order1
@@ -805,10 +794,10 @@ makemodel.quick<-function(spec , ...  ){#model,data,inputs){
           }
           toporders<-rbind(toporders,c(order1 ,minCr))
           Base_cr<-minCr
-          ardl_converge =F
+          ardl_converge <- FALSE
         }else{
           if(any(apply(failed_checks, 1, function(row) all(row == order1)))){
-            ardl_converge =T
+            ardl_converge <- TRUE
           }else {
             failed_checks<-rbind(failed_checks,order1)
           }
@@ -857,13 +846,19 @@ makemodel.quick<-function(spec , ...  ){#model,data,inputs){
   Karamelikli
 }
 
-# Estimation the model by User-defined lags
-#
-#If the lags of short-run variables are determined by user, the results will be obtained with \code{userDefinedModel}
-# @param inputs All inputs of making model.
-# @param ... Other inputs
-#
-# @return
+#' User-Defined Lag Estimation Method
+#'
+#' This function implements the estimation method for ARDL or NARDL models when the
+#' user provides a specific lag structure. It estimates the model using the provided
+#' lag configuration and evaluates it based on the specified criterion. The function
+#' returns the estimated model object based on the user-defined lag structure.
+#'
+#' @param spec A list containing the prepared specifications for model estimation,
+#'  including extracted information and arguments.
+#' @param ... Additional arguments that can be passed to the function.
+#' @return An object of class \code{kardl_lm} and \code{lm} containing the
+#' estimated ARDL or NARDL model based on the user-defined lag structure.
+#' @noRd
 #' @export
 #'
 makemodel.user <-function(spec, ...  ){#model,data,inputs){
@@ -918,15 +913,14 @@ makemodel.user <-function(spec, ...  ){#model,data,inputs){
   Karamelikli
 }
 
-# Find Optimum Lags level  by maximizing Performance
-#
-# To reduce server load for finding optimum lag, this function can find it.
-# Notice! nothing will be print during estimations.
-# @param inputs All inputs of making model.
-# @param ... Other inputs
-#
-# @return
-#
+#' Grid Search Estimation Method
+#'
+#' This function implements the "grid_custom" estimation method for ARDL or NARDL models. It performs a grid search over possible lag combinations to find the optimal lag structure based on the specified criterion. The function iteratively tests different lag combinations within the defined grid and evaluates the model using the provided criterion until it identifies the best lag configuration.
+#' @param spec A list containing the prepared specifications for model estimation, including extracted information and arguments.
+#' @param ... Additional arguments that can be passed to the function.
+#' @return An object of class \code{kardl_lm} and \code
+#' {lm} containing the estimated ARDL or NARDL model based on the "grid_custom" estimation method.
+#' @noRd
 #' @export
 makemodel.grid_custom<-function(spec, ...  ){ #model ,  data,inputs  ){
   # inputs$mode<-"grid_custom"
@@ -976,7 +970,7 @@ makemodel.grid_custom<-function(spec, ...  ){ #model ,  data,inputs  ){
   startLag<-paste(LagQueue[batch$startRow,],collapse = ",")
   properRow<-1
 
-  finalLags<-data.frame(c( paste0(LagQueue[OptRow,],collapse = ","),Mincr)  )
+  finalLags<-data.frame(c( paste(LagQueue[OptRow,],collapse = ","),Mincr)  )
   if(!is.function(spec$argsInfo$criterion)){
     colnames(finalLags)<-spec$argsInfo$criterion
   }
@@ -1027,17 +1021,16 @@ makemodel.grid_custom<-function(spec, ...  ){ #model ,  data,inputs  ){
   Karamelikli
 }
 
-# Find Optimum Lags level  by visualization of Estimations
-#
-# Current job status and remained estimations with progress bar.
-# Notice! Users should check the validity of the model and data utilizing this function.
-# Appearance mode will have outputs during estimations.
-#
-# @param inputs All inputs of making model.
-# @param ... Other inputs
-#
-# @return
-#
+#' Grid Search Estimation Method with Console Output
+#'
+#' This function implements the "grid" estimation method for ARDL or NARDL models. It performs a grid search over possible lag combinations to find the optimal lag structure based on the specified criterion. The function iteratively tests different lag combinations within the defined grid and evaluates the model using the provided criterion until it identifies the best lag configuration. Additionally, this method provides console output during the estimation process to indicate progress and the current lag combination being evaluated.
+#' @param spec A list containing the prepared specifications for model estimation, including extracted information and
+#' arguments.
+#' @param ... Additional arguments that can be passed to the function.
+#' @return An object of class \code{kardl_lm} and \code
+#' {lm} containing the estimated ARDL or NARDL model based on the "grid" estimation method with console output.
+#' @noRd
+#'
 #' @export
 makemodel.grid<-function(spec , ... ){#model ,  data,inputs  ){ # makemodel.default
   # inputs$mode<-"grid"
@@ -1064,10 +1057,10 @@ makemodel.grid<-function(spec , ... ){#model ,  data,inputs  ){ # makemodel.defa
     bir<-cbind(bir,r)
   }
   colnames(bir)<-spec$extractedInfo$shortRunVars
-  LagMatrix <-bir[nrow(bir):1,] # I am reversing orders due to alerting about the insufficiency of the degree of freedom.
-  colNum=ncol(LagMatrix)
-  for (i in 1:nrow(LagMatrix)){
-    LagCriteria[i,1] <- paste0(LagMatrix[i,],collapse=",")
+  LagMatrix <-bir[rev(seq_len(nrow(bir))),] # I am reversing orders due to alerting about the insufficiency of the degree of freedom.
+  colNum<-ncol(LagMatrix)
+  for (i in seq_len(nrow(LagMatrix))){
+    LagCriteria[i,1] <- paste(LagMatrix[i,],collapse=",")
   }
   for(i in batch$startRow:batch$endRow)  {
     MyFormula <- as.formula(paste0(preModel$LS_dependent,"~",paste(preModel$LS_longrun,
@@ -1092,10 +1085,10 @@ makemodel.grid<-function(spec , ... ){#model ,  data,inputs  ){ # makemodel.defa
   cat("\n")
   endLag  <- LagMatrix[batch$endRow ,]# paste(LagMatrix[batch$startRow,],collapse = ",")
   startLag<- LagMatrix[batch$startRow ,]#paste(LagMatrix[batch$endRow,],collapse = ",")
-  aicRow<-which(LagCriteria[,2]==min(as.numeric(LagCriteria[,2]), na.rm=T), arr.ind=T)
-  bicRow<-which(LagCriteria[,3]==min(as.numeric(LagCriteria[,3]), na.rm=T), arr.ind=T)
-  aiccRow<-which(LagCriteria[,4]==min(as.numeric(LagCriteria[,4]), na.rm=T), arr.ind=T)
-  hqRow<-which(LagCriteria[,5]==min(as.numeric(LagCriteria[,5]), na.rm=T), arr.ind=T)
+  aicRow<-which(LagCriteria[,2]==min(as.numeric(LagCriteria[,2]), na.rm=T), arr.ind=T)[1]
+  bicRow<-which(LagCriteria[,3]==min(as.numeric(LagCriteria[,3]), na.rm=T), arr.ind=T)[1]
+  aiccRow<-which(LagCriteria[,4]==min(as.numeric(LagCriteria[,4]), na.rm=T), arr.ind=T)[1]
+  hqRow<-which(LagCriteria[,5]==min(as.numeric(LagCriteria[,5]), na.rm=T), arr.ind=T)[1]
   finalLags<-data.frame("AIC"=c(LagCriteria[aicRow,1],LagCriteria[aicRow,2]),
                         "BIC"=c(LagCriteria[bicRow,1],LagCriteria[bicRow,3])   ,
                         "AICc"=c(LagCriteria[aiccRow,1],LagCriteria[aiccRow,4]),
@@ -1147,7 +1140,7 @@ makemodel.grid<-function(spec , ... ){#model ,  data,inputs  ){ # makemodel.defa
     Criterion=spec$argsInfo$criterion,
     LagsFrom=startLag,
     LagsTo=endLag,
-    LagCriteria=LagCriteria,
+    LagCriteria=as.data.frame( LagCriteria),
     LagMatrix=LagMatrix
   )
 

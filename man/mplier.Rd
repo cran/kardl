@@ -11,17 +11,17 @@ mplier(kmodel, horizon = 80, minProb = 0)
 
 \item{horizon}{Integer. Number of periods ahead for which dynamic multipliers are computed.}
 
-\item{minProb}{Numeric. Threshold for coefficient significance. Coefficients with
-p-values greater than this value are set to zero.}
+\item{minProb}{Numeric. Minimum p-value threshold for including coefficients in the calculation. Coefficients with p-values above this threshold will be set to zero. Default is \code{0} (no threshold).
+This parameter allows users to control the inclusion of coefficients in the calculation based on their statistical significance. Setting a threshold can help focus the analysis on more relevant variables, but it may also exclude potentially important effects if set too stringently.}
 }
 \value{
 A list of class \code{kardl_mplier} containing:
 \itemize{
-  \item \strong{mpsi}: Matrix of cumulative dynamic multipliers.
-  \item \strong{omega}: Vector of omega coefficients (persistence structure).
-  \item \strong{lambda}: Matrix of short-run dynamic coefficients.
-  \item \strong{horizon}: Forecast horizon used.
-  \item \strong{vars}: Extracted model variable structure.
+\item \strong{mpsi}: Matrix of cumulative dynamic multipliers.
+\item \strong{omega}: Vector of omega coefficients (persistence structure).
+\item \strong{lambda}: Matrix of short-run dynamic coefficients.
+\item \strong{horizon}: Forecast horizon used.
+\item \strong{vars}: Extracted model variable structure.
 }
 }
 \description{
@@ -32,23 +32,21 @@ linearity and asymmetry in both short-run and long-run dynamics.
 \details{
 The asymmetry structure is determined internally:
 \itemize{
-  \item Variables in \code{extractedInfo$ASvars} are treated as asymmetric in the short run.
-  \item Variables in \code{extractedInfo$ALvars} are treated as asymmetric in the long run.
+\item Variables in \code{extractedInfo$ASvars} are treated as asymmetric in the short run.
+\item Variables in \code{extractedInfo$ALvars} are treated as asymmetric in the long run.
 }
 
 This allows four possible configurations:
 \itemize{
-  \item \strong{LL}: Linear in both short-run and long-run
-  \item \strong{NN}: Asymmetric in both short-run and long-run
-  \item \strong{SA}: Short-run linear, long-run asymmetric
-  \item \strong{AS}: Short-run asymmetric, long-run linear
+\item \strong{LL}: Linear in both short-run and long-run
+\item \strong{NN}: Asymmetric in both short-run and long-run
+\item \strong{SA}: Short-run linear, long-run asymmetric
+\item \strong{AS}: Short-run asymmetric, long-run linear
 }
 
 When a component is linear, the same coefficient path is used for both positive
 and negative changes. When asymmetric, separate positive and negative effects
 are computed.
-
-
 
 The \code{mplier} function computes dynamic multipliers based on the coefficients and lag structure of a model estimated using the \code{kardl} package. The function extracts necessary
 information from the model, such as coefficients, lag structure, and variable names, to compute the dynamic multipliers. It calculates the short-run coefficients, Lambda values, and omega values based on the model's parameters and lag structure. The output includes a matrix of dynamic multipliers (mpsi), which can be used for further analysis or visualization.
@@ -84,6 +82,7 @@ Otherwise, the same dynamic path is used.
 # base R plotting and ggplot2.
 
  # Calculating dynamic multipliers for a linear model in short and long run (NN)
+
  kardl_model<-kardl(imf_example_data, CPI~ER )
  m<-mplier(kardl_model,40)
  head(m$mpsi)

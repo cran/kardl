@@ -25,8 +25,8 @@
 #'
 #' @param kmodel An object of class \code{kardl_lm} produced by the \code{kardl} function.
 #' @param horizon Integer. Number of periods ahead for which dynamic multipliers are computed.
-#' @param minProb Numeric. Threshold for coefficient significance. Coefficients with
-#' p-values greater than this value are set to zero.
+#' @param minProb Numeric. Minimum p-value threshold for including coefficients in the calculation. Coefficients with p-values above this threshold will be set to zero. Default is \code{0} (no threshold).
+#' This parameter allows users to control the inclusion of coefficients in the calculation based on their statistical significance. Setting a threshold can help focus the analysis on more relevant variables, but it may also exclude potentially important effects if set too stringently.
 #'
 #' @return A list of class \code{kardl_mplier} containing:
 #' \itemize{
@@ -69,6 +69,20 @@
 #'
 #' @import stats msm
 #'
+#'
+#' @srrstats {G1.3}  Statistical terms such as "dynamic multipliers" are clearly defined and used consistently throughout the documentation and examples.
+#' @srrstats {G2.0} The function validates that `kmodel` is of class `kardl_lm` before extracting lag and coefficient information.
+#' @srrstats {G3.1} Long-run multiplier inference uses the variance-covariance matrix of the fitted model object.
+#' @srrstats {G3.1a} Documentation describes the recursive formula used to compute cumulative multipliers and the role of the `omega` persistence structure.
+#' @srrstats {TS4.2} The return value documents the `mpsi`, `omega`, `lambda`, `horizon`, and `vars` components with their meanings.
+#' @srrstats {TS4.3} Dynamic multiplier outputs include the horizon index so that multiplier paths can be interpreted over modelled time steps.
+#' @srrstats {TS5.0} A `plot` method is implemented for `kardl_mplier` objects.
+#' @srrstats {TS5.7} The plot method displays the computed response path from the fitted model over the selected horizon.
+#' @srrstats {TS5.8} Plot methods distinguish multiplier components by variable and shock direction where asymmetric effects are present.
+#'
+#'
+#'
+#'
 #' @export
 #'
 #' @examples
@@ -79,6 +93,7 @@
 #' # base R plotting and ggplot2.
 #'
 #'  # Calculating dynamic multipliers for a linear model in short and long run (NN)
+#'
 #'  kardl_model<-kardl(imf_example_data, CPI~ER )
 #'  m<-mplier(kardl_model,40)
 #'  head(m$mpsi)
@@ -297,7 +312,7 @@ mplier<-function(kmodel,horizon=80,minProb=0){
   )
 }
 
-#' Produce Bootstrap Confidence Intervals for Dynamic Multipliers
+#' Bootstrap Confidence Intervals for Dynamic Multipliers
 #'
 #' This function computes bootstrap confidence intervals (CI) for dynamic multipliers
 #' of a specified variable in a model estimated using the \code{kardl} package. The bootstrap method
@@ -315,6 +330,8 @@ mplier<-function(kmodel,horizon=80,minProb=0){
 #' @param minProb A numeric value specifying the minimum p-value threshold for including coefficients in the bootstrap.
 #'       Coefficients with p-values above this threshold will be set to zero in the bootstrap samples. Default is \code{0} (no threshold).
 #'       This parameter allows users to control the inclusion of coefficients in the bootstrap process based on their statistical significance. Setting a threshold can help focus the analysis on more relevant variables, but it may also exclude potentially important effects if set too stringently.
+#'@param seed An optional integer to set the random seed for reproducibility of the bootstrap results. If not provided, the bootstrap will use the current random state.
+#'
 #' @seealso
 #' \code{\link{mplier}} for calculating dynamic multipliers
 #'
@@ -334,12 +351,17 @@ mplier<-function(kmodel,horizon=80,minProb=0){
 #' The \code{mpsi} component of the output contains the dynamic multiplier estimates along with their upper
 #' and lower confidence intervals. These values are provided for each variable and at each time horizon.
 #'
+#' @srrstats {G5.5} Tests involving random resampling in the bootstrap set a random seed before the replication loop.
+#' @srrstats {G5.6} Parameter-recovery properties of the bootstrap are assessed through deterministic examples in the test suite.
+#' @srrstats {G3.1} Bootstrap standard errors for dynamic multipliers are derived from the covariance structure of the fitted model's residuals.
+#' @srrstats {TS4.2} The bootstrap return value documents the `mpsi`, `level`, `horizon`, `vars`, and `replications` components.
+#' @srrstats {G5.9} The documentation includes examples demonstrating the use of the bootstrap function, including how to specify the number of replications and how to interpret the output.
+#'
+#'
 #' @import ggplot2
 #' @export
 #'
 #' @examples
-#'
-#' library(dplyr)
 #'
 #'   # Example usage of the bootstrap function
 #'
@@ -352,7 +374,7 @@ mplier<-function(kmodel,horizon=80,minProb=0){
 #'
 #'  # Perform bootstrap with specific variables for plotting
 #'  boot <-
-#'    bootstrap(kardl_model,   replications=5)
+#'    bootstrap(kardl_model,   replications=5, seed = 123L)
 #'  # The boot object will include all plots for the specified variables
 #'  # Displaying the boot object provides an overview of its components
 #'  names(boot)
@@ -374,8 +396,8 @@ mplier<-function(kmodel,horizon=80,minProb=0){
 #'
 #'
 #'
-#'  # Using dplyr
-#'  library(dplyr)
+#' @examplesIf requireNamespace("magrittr", quietly = TRUE)
+#' library(magrittr)
 #'
 #'    imf_example_data %>% kardl( CPI ~ PPI + asym(ER) +trend, maxlag=2) %>%
 #'    bootstrap(replications=5) %>% plot(variable = "ER")
@@ -385,11 +407,15 @@ bootstrap<-function(kmodel,
                     horizon=80,
                     replications=100,
                     level=95,
-                    minProb=0){
+                    minProb=0,
+                    seed = NULL){
 
   if(! inherits(kmodel, "kardl_lm")){
 
     stop("Input object must be of class 'kardl_lm'.",call. = FALSE)
+  }
+  if (!is.null(seed)) {
+    set.seed(seed)
   }
 
   My_mp<-mplier(kmodel,horizon, minProb)
@@ -466,7 +492,7 @@ bootstrap<-function(kmodel,
           newy2<- sum(theta*my_newData[(t-0):(t-q+1),inddColnames]) #calculating independent vars
           newy3<-sum(my_newData[t,vars$deterministic]*b0[vars$deterministic]) #calculating deterministic vars
           newy <- newy1+ newy2+newy3+ b0[[1]] # adding constant
-          newDepData[t]  <-   newy  +   nardlres[sample(1:NROW(nardlres), 1)] #adding random residual
+          newDepData[t]  <-   newy  +   nardlres[sample(seq_len(NROW(nardlres)), 1)] #adding random residual
         }
         if(r==1){
           BSnewdata<-cbind(newDepData,vars$data) # adding to original data
@@ -485,7 +511,7 @@ bootstrap<-function(kmodel,
     }
 
     NewDiff<-as.data.frame( NewDiff[-1,])
-    rownames(NewDiff)<-1:nrow(NewDiff)
+    rownames(NewDiff)<-seq_len(nrow(NewDiff))
 
     lowerZ <- 0.5 * (1 - level / 100)
     rZ<-replications * lowerZ
@@ -532,6 +558,19 @@ bootstrap<-function(kmodel,
   my_output
 
 }
+
+#' Plot Dynamic Multipliers with ggplot2
+#'
+#' This function creates a ggplot visualization of the dynamic multipliers for a specified variable from a model estimated using the \code{kardl} package. The plot includes lines for positive and negative changes, as well as confidence intervals if available. The function allows for customization of colors, line types, and legend formatting to enhance the interpretability of the results.
+#' @param mpsi A data frame containing the dynamic multipliers and confidence intervals for the specified variable. This data frame is typically generated by the \code{bootstrap} function.
+#' @param vars A list of variable information extracted from the model, including dependent variable,
+#' independent variables, asymmetric variables, and deterministic terms. This information is used to label the plot appropriately.
+#' @param varName A character string specifying the name of the variable for which the dynamic
+#' multipliers are being plotted. This variable should be one of the independent variables in the model, and it is used to construct the plot labels and legend.
+#' @return A ggplot object visualizing the dynamic multipliers for the specified variable,
+#' including lines for positive and negative changes, as well as confidence intervals if available. The plot is formatted with appropriate labels, colors, and legend to enhance interpretability.
+#' @import ggplot2
+#' @noRd
 
 mplierggplot<-function(mpsi,vars, varName  ){
   x_p <- paste0(.kardl_Settings_env$AsymPrefix[1], varName, .kardl_Settings_env$AsymSuffix[1]) # paste0(varName,".POS")
