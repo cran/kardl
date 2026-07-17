@@ -100,8 +100,6 @@
 #'           examples.
 #' @srrstats {G2.0} The function validates that `kardl_model` is of class
 #'           `kardl_lm` before extracting lag and coefficient information.
-#' @srrstats {G3.1} Long-run multiplier inference uses the variance-covariance
-#'           matrix of the fitted model object.
 #' @srrstats {G3.1a} Documentation describes the recursive formula used to
 #'           compute cumulative multipliers and the role of the `omega`
 #'           persistence structure.
@@ -112,8 +110,6 @@
 #' @srrstats {TS5.0} A `plot` method is implemented for `kardl_mplier` objects.
 #' @srrstats {TS5.7} The plot method displays the computed response path from
 #'           the fitted model over the selected horizon.
-#' @srrstats {TS5.8} Plot methods distinguish multiplier components by variable
-#'           and shock direction where asymmetric effects are present.
 #' @export
 #'
 #' @examples
@@ -127,27 +123,27 @@
 #' # Calculating dynamic multipliers for a linear model in short and long run
 #' # (NN)
 #'
-#' kardl_model <- kardl(CPI ~ ER, imf_example_data)
+#' kardl_model <- kardl(DriversKilled ~ PetrolPrice, Seatbelts)
 #' m <- mplier(kardl_model, 40)
 #' head(m$mpsi)
 #' plot(m)
 #'
 #' # Calculating dynamic multipliers for a model with
 #' # Short-run linear, long-run asymmetric (SA)
-#' kardl_model <- kardl(CPI ~ lasym(ER), imf_example_data)
+#' kardl_model <- kardl(DriversKilled ~ lasym(PetrolPrice), Seatbelts)
 #' m <- mplier(kardl_model, horizon = 40, min_prob = 0)
 #' head(kardl_extract(m, "multipliers"))
 #' plot(m)
 #'
 #' # Calculating dynamic multipliers for a model with
 #' # Short-run asymmetric, long-run linear (AS)
-#' kardl_model <- kardl(CPI ~ sasym(ER), imf_example_data)
+#' kardl_model <- kardl(DriversKilled ~ sasym(PetrolPrice), Seatbelts)
 #' m <- mplier(kardl_model, 40)
 #' plot(m)
 #'
 #' # Calculating dynamic multipliers for a model with
 #' # asymmetric effects in both short and long run (NN)
-#' kardl_model <- kardl(CPI ~ asym(ER) + PPI, imf_example_data)
+#' kardl_model <- kardl(DriversKilled ~ asym(PetrolPrice) + drivers, Seatbelts)
 #' m <- mplier(kardl_model, 40)
 #' plot(m)
 #'
@@ -162,9 +158,14 @@
 #' head(kardl_extract(m, "lambda"))
 #'
 #' # For plotting specific variables, you can specify them in the plot
-#' # function. For example, to plot the multipliers for the variable "PPI":
+#' # function. For example, to plot the multipliers for the variable "drivers":
 #'
-#' plot(m, variable = "PPI", title = "Dynamic Multipliers for PPI")
+#' plot(m, variable = "drivers", title = "Dynamic Multipliers for drivers")
+#'
+#' # To plot the multipliers for the variable "PetrolPrice" without a title,
+#' # you can use:
+#' plot(m, variable = "PetrolPrice", title = "")
+#'
 mplier <- function(kardl_model, horizon = 80, min_prob = 0, ...) {
   UseMethod("mplier")
 }
@@ -200,8 +201,10 @@ mplier.default <- function(kardl_model, horizon = 80, min_prob = 0, ...) {
 #' @method  mplier kardl_longrun
 #' @noRd
 mplier.kardl_longrun <- function(kardl_model, horizon = 80, min_prob = 0, ...) {
-  mplier.kardl_lm (kardl_model$original_model, horizon = horizon,
-                   min_prob = min_prob, ...)
+  mplier.kardl_lm(kardl_model$original_model,
+    horizon = horizon,
+    min_prob = min_prob, ...
+  )
 }
 
 #' Compute Dynamic Multipliers for kardl Models
@@ -524,40 +527,52 @@ mplier.kardl_lm <- function(kardl_model, horizon = 80, min_prob = 0, ...) {
 #'
 #' # Fit a model using kardl
 #' kardl_model <- kardl(
-#'   CPI ~ ER + PPI + asy(ER) + det(covid) + trend,
-#'   imf_example_data,
+#'   DriversKilled ~ PetrolPrice + drivers + asy(PetrolPrice) +
+#'     det(law) + trend,
+#'   Seatbelts,
 #'   mode = c(1, 2, 3, 0)
 #' )
 #'
-#' # Perform bootstrap with specific variables for plotting
+#' # Perform bootstrap with specific variables for plotting.
 #' boot <- bootstrap(kardl_model,
 #'   horizon = 40, level = 95, min_prob = 0,
 #'   replications = 5, seed = 123L
 #' )
 #' # The boot object will include all plots for the specified variables
-#' # Displaying the boot object provides an overview of its components
+#' # Displaying the boot object provides an overview of its components.
 #' names(boot)
 #'
-#' # Inspect the first few rows of the dynamic multiplier estimates
+#' # Inspect the first few rows of the dynamic multiplier estimates.
 #' head(kardl_extract(boot, "multipliers"))
 #'
 #' summary(boot)
 #'
-#' # Retrieve plots generated during the bootstrap process
+#' # Retrieve plots generated during the bootstrap process.
 #' # Accessing all plots
 #' plot(boot)
 #'
-#' # Accessing the plot for a specific variable by its name
-#' plot(boot, variable = "PPI")
-#' plot(boot, variable = "ER")
+#' # Accessing the plot for a specific variable by its name.
+#' plot(boot, variable = "drivers")
+#' plot(boot, variable = "PetrolPrice")
+#'
+#' # You can also specify a title for the plot.
+#' plot(boot, variable = "PetrolPrice",
+#' title = "Dynamic Multipliers for PetrolPrice")
+#'
+#' # To remove the title from the plot, you can set the title argument
+#' # to an empty string.
+#' plot(boot, variable = "drivers",title = "")
 #'
 #' @examplesIf requireNamespace("magrittr", quietly = TRUE)
 #' library(magrittr)
 #'
-#' imf_example_data %>%
-#'   kardl(CPI ~ PPI + asym(ER) + trend, maxlag = 2, data = .) %>%
+#' Seatbelts %>%
+#'   kardl(DriversKilled ~ drivers + asym(PetrolPrice) + trend,
+#'     maxlag = 2,
+#'     data = .
+#'   ) %>%
 #'   bootstrap(replications = 5) %>%
-#'   plot(variable = "ER")
+#'   plot(variable = "PetrolPrice")
 bootstrap <- function(kardl_model,
                       horizon = 80,
                       replications = 100,
@@ -611,9 +626,11 @@ bootstrap.kardl_longrun <- function(
   seed = NULL,
   ...
 ) {
-  bootstrap.kardl_lm(kardl_model$original_model, horizon = horizon,
-                     replications = replications, level = level,
-                     min_prob = min_prob, seed = seed, ...)
+  bootstrap.kardl_lm(kardl_model$original_model,
+    horizon = horizon,
+    replications = replications, level = level,
+    min_prob = min_prob, seed = seed, ...
+  )
 }
 
 
@@ -691,6 +708,9 @@ bootstrap.kardl_lm <- function(
       if (!is.null(vars$deterministic)) vars$deterministic
     )
 
+    vars_frequency <- frequency(vars$data)
+    vars_start <- start(vars$data)
+
     vars$data <- as.data.frame(vars$data)
 
     ## --- NEW: make sure every requested column exists --------------------
@@ -752,6 +772,12 @@ bootstrap.kardl_lm <- function(
       } else {
         bs_new_data[, "bs_tmp"] <- new_dep_data
       }
+
+      # Change bs_new_data to ts
+      bs_new_data <- stats::ts(bs_new_data,
+        start = vars_start,
+        frequency = vars_frequency
+      )
 
       my_model <- kardl(new_formula, bs_new_data, mode = opt_lag)
       my_mp_new <- mplier(my_model, horizon, min_prob)

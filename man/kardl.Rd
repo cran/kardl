@@ -178,9 +178,11 @@ Users can define lag values directly as a numeric vector. For example:
 \code{mode = c(1, 2, 4, 5)} assigns lags of 1, 2, 4, and 5 to variables in
 the specified order. Alternatively, lag values can be assigned to variables
 by name for clarity and control. For example:
-\code{mode = c(CPI = 2, ER_POS = 3, ER_NEG = 1, PPI = 3)} assigns lags to
-variables explicitly. Ensure that the lags are correctly designated by
-verifying the result using \code{kardl_model$proper_lag} after estimation.
+If the long-run model defined as \code{DriversKilled~Asy(PetrolPrice)+
+drivers}, then \code{mode = c(DriversKilled = 2, PetrolPrice_POS = 3,
+PetrolPrice_NEG = 1, drivers = 3)} assigns lags to variables explicitly.
+Ensure that the lags are correctly designated by verifying the result using
+\code{kardl_model$proper_lag} after estimation.
 
 \strong{\emph{Attention!}}
 A function-based criterion or user-defined function can be specified
@@ -215,6 +217,10 @@ relative to the number of parameters.
 \item \strong{"HQ"}: Hannan-Quinn Information Criterion. This criterion
 provides a compromise between AIC and BIC, favoring models that
 balance fit and complexity without being overly conservative.
+\item \strong{AdjR2}: Adjusted R-squared. This criterion adjusts
+the R-squared value for the number of predictors in the model,
+favoring models that explain more variance with fewer predictors.
+
 }
 The criterion can be specified as a string (e.g., \code{"AIC"}) or as
 a user-defined function that takes a fitted model object.
@@ -321,9 +327,10 @@ respectively.
 
 In the reported coefficients, the prefix \code{L} denotes lagged variables,
 where the accompanying number indicates the lag order, and \code{.d.} denotes
-first differences. Accordingly, \code{L1.PPI} represents the first lag of the
-level of \code{PPI} (long-run component), while \code{L3.d.PPI} denotes the
-third lag of the first-differenced \code{PPI} (short-run component).
+first differences. Accordingly, \code{L1.drivers} represents the first lag of
+the level of \code{drivers} (long-run component), while \code{L3.d.drivers}
+denotes the third lag of the first-differenced \code{drivers}
+(short-run component).
 
 In addition, the suffixes \code{_POS} and \code{_NEG} indicate the positive
 and negative partial sum components of a variable, respectively.
@@ -334,13 +341,13 @@ the \code{kardl_set()} function.
 \examples{
 
 
-# Sample article: THE DYNAMICS OF EXCHANGE RATE PASS-THROUGH
-# TO DOMESTIC PRICES IN TURKEY
+# Example: Road safety analysis using UK Seatbelts data
+# Analyzing the effect of seatbelt law on driver deaths
 
 kardl_set(
-  formula = CPI ~ ER + PPI + Asymmetr(ER) +
-    deterministic(covid) + trend,
-  data = imf_example_data,
+  formula = DriversKilled ~ PetrolPrice + drivers + Asymmetr(PetrolPrice) +
+    deterministic(law) + trend,
+  data = Seatbelts,
   maxlag = 2
 ) # setting the default values of the kardl function
 
@@ -364,12 +371,12 @@ summary(kardl_model2)
 
 # using '.' in the formula means that all variables in the data will be used
 
-fit_bic <- kardl(formula = CPI ~ . + deterministic(covid))
+fit_bic <- kardl(formula = DriversKilled ~ . + deterministic(law))
 fit_bic
 
 # Setting max lag instead of default value [4]
-kardl(CPI ~ ER + PPI + Lasymmetric(ER),
-  imf_example_data,
+kardl(DriversKilled ~ PetrolPrice + drivers + Lasymmetric(PetrolPrice),
+  Seatbelts,
   maxlag = 3, mode = "grid_custom"
 )
 
@@ -385,12 +392,12 @@ kardl(mode = c(1, 2, 3, 0))
 # decompositions.
 
 same <- kardl(
-  formula = CPI ~ Asymmetric(ER),
+  formula = DriversKilled ~ Asymmetric(PetrolPrice),
   maxlag = 2, mode = "grid_custom",
   different_asym_lag = FALSE
 )
 dif <- kardl(
-  formula = CPI ~ Sasymmetric(ER),
+  formula = DriversKilled ~ Sasymmetric(PetrolPrice),
   maxlag = 2, mode = "grid_custom",
   different_asym_lag = TRUE
 )
@@ -400,7 +407,7 @@ kardl_extract(dif, "opt_lag")
 # Optional: use magrittr if available
 \dontshow{if (requireNamespace("magrittr", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(magrittr)
-kardl_model_pipe <- imf_example_data \%>\%
+kardl_model_pipe <- Seatbelts \%>\%
   kardl(mode = "grid_custom", data = .)
 kardl_model_pipe
 \dontshow{\}) # examplesIf}

@@ -4,14 +4,39 @@
 \alias{psst}
 \title{Pesaran, Shin, and Smith t Bounds Test}
 \usage{
-psst(kardl_model, ...)
+psst(kardl_model, case = "auto", signif_level = "auto", vcov = NULL, ...)
 }
 \arguments{
 \item{kardl_model}{An object of class \code{kardl_lm} produced by
 \code{\link{kardl}} or an object of class \code{kardl_longrun}
 produced by \code{\link{kardl_longrun}}.}
 
-\item{...}{Additional arguments (currently not used).}
+\item{case}{Numeric or character. Specifies the case of the test to be used
+in the function. Acceptable values are 1, 2, 3, 4, 5, and "auto". If
+"auto" is chosen, the function determines the case automatically
+based on the model's characteristics. Invalid values will result in
+an error.
+\itemize{
+\item \code{1}: No intercept and no trend
+\item \code{2}: Restricted intercept and no trend
+\item \code{3}: Unrestricted intercept and no trend
+\item \code{4}: Unrestricted intercept and restricted trend
+\item \code{5}: Unrestricted intercept and unrestricted trend
+}}
+
+\item{signif_level}{Character or numeric. Specifies the significance level
+to be used in the function. Acceptable values are "auto", "0.10",
+"0.1", "0.05", "0.025", and "0.01". If a numeric value is provided,
+it will be converted to a character string. When \code{"auto"} is selected,
+the function determines the significance level sequentially, starting from
+the most stringent level (\code{"0.01"}) and proceeding to \code{"0.025"},
+\code{"0.05"}, and \code{"0.10"} until a suitable level is identified.
+Invalid values will result in an error.}
+
+\item{vcov}{A variance-covariance matrix to be used for the test. If not
+provided, the default variance-covariance matrix from the model will be used.}
+
+\item{...}{Additional arguments.}
 }
 \value{
 The function returns an object of class "htest" containing the
@@ -66,8 +91,9 @@ different cases, depending on the model specification.
 
 \examples{
 kardl_model<-kardl(
-                   CPI~ER+PPI+asym(ER)+deterministic(covid)+trend,
-                   imf_example_data,
+                   DriversKilled~PetrolPrice+drivers+asym(PetrolPrice)+
+                         deterministic(law)+trend,
+                   Seatbelts,
                    mode=c(1,2,3,0))
 my_test<-psst(kardl_model)
 # Getting the results of the test.
@@ -79,22 +105,34 @@ my_summary
 # Getting the critical values of the test.
 kardl_extract(my_summary, what = "critical_values")
 
-
+# Using a robust variance-covariance matrix for the test:
+if (requireNamespace("sandwich", quietly = TRUE)) {
+    vcov_matrix <- sandwich::vcovHC(kardl_model)
+    my_test_robust <- psst(kardl_model,
+                           case = 1,
+                           signif_level =0.01,
+                           vcov = vcov_matrix)
+  my_test_robust
+}
 
 
 # Using magrittr :
 
 \dontshow{if (requireNamespace("magrittr", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(magrittr)
-imf_example_data \%>\%
-  kardl(CPI ~ ER + PPI + asym(ER) + deterministic(covid) + trend,
+Seatbelts \%>\%
+  kardl(
+    DriversKilled ~ PetrolPrice + drivers + asym(PetrolPrice) +
+      deterministic(law) + trend,
     mode = c(1, 2, 3, 0), data = .
   ) \%>\%
   psst()
 
 # Getting details of the test results using magrittr:
-imf_example_data \%>\%
-  kardl(CPI ~ ER + PPI + asym(ER) + deterministic(covid) + trend,
+Seatbelts \%>\%
+  kardl(
+    DriversKilled ~ PetrolPrice + drivers + asym(PetrolPrice) +
+      deterministic(law) + trend,
     mode = c(1, 2, 3, 0), data = .
   ) \%>\%
   psst() \%>\%

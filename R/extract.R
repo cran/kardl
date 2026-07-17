@@ -28,13 +28,13 @@
 #' selected `what` value and are documented in the relevant sections below. This
 #' argument is available just for `kardl_symmetric` objects, where users can
 #' extract results for specific variables included in the symmetry test. For
-#' example, if a symmetry test includes variables "ER" and "PPI", users can
-#' specify `variable = "ER"` to extract results related to the "ER" variable, or
-#'  `variable = c("ER", "PPI")` to extract results for both variables.
+#' example, if a symmetry test includes variables "drivers" and "PetrolPrice",
+#' users can specify `variable = "drivers"` to extract results related to the
+#' "drivers" variable, or `variable = c("drivers", "PetrolPrice")` to extract
+#' results for both variables.
 #' If `variable` is not specified when extracting components that include
 #' variable-specific results, the function will return results for all
 #' variables included in the symmetry test.
-#'
 #'
 #' @return
 #' The requested component. The returned object depends on the class of `object`
@@ -183,8 +183,10 @@
 #'  (long-run or short-run) and/or results for specific variables of interest.
 #'
 #' @examples
-#' kardl_model <- kardl(CPI ~ asym(ER + PPI), data = imf_example_data,
-#' mode = c(2, 1, 0, 4, 0 ))
+#' kardl_model <- kardl(DriversKilled ~ asym(PetrolPrice + drivers),
+#'   data = Seatbelts,
+#'   mode = c(2, 1, 0, 4, 0)
+#' )
 #'
 #' # Examples of extracting components from a fitted kardl_lm model object
 #' # kardl_extract(kardl_model, what = "data_ts_info")
@@ -222,8 +224,6 @@
 #' kardl_extract(kardl_model, what = "model_formula")
 #' kardl_extract(kardl_model, what = "k")
 #' kardl_extract(kardl_model, what = "n")
-#'
-#'
 #'
 #'
 #' # Examples of extracting components from a kardl_mplier object
@@ -284,16 +284,28 @@
 #' kardl_extract(symmetry_results, what = "call")
 #'
 #' # Example of extracting specific components from symmetry test results
-#' kardl_extract(symmetry_results, what = "short_wald_tests", variable = "PPI")
-#' kardl_extract(symmetry_results, what = "long_wald_tests", variable = "PPI")
-#' kardl_extract(symmetry_results, what = "long_hypotheses", variable = "PPI")
-#' kardl_extract(symmetry_results, what = "short_hypotheses", variable = "PPI")
+#' kardl_extract(symmetry_results,
+#'   what = "short_wald_tests",
+#'   variable = "PetrolPrice"
+#' )
+#' kardl_extract(symmetry_results,
+#'   what = "long_wald_tests",
+#'   variable = "PetrolPrice"
+#' )
+#' kardl_extract(symmetry_results,
+#'   what = "long_hypotheses",
+#'   variable = "PetrolPrice"
+#' )
+#' kardl_extract(symmetry_results,
+#'   what = "short_hypotheses",
+#'   variable = "PetrolPrice"
+#' )
 #' kardl_extract(symmetry_results, what = "short_hypotheses", component = "H0")
 #' kardl_extract(symmetry_results, what = "short_hypotheses", component = "H1")
 #'
 #' kardl_extract(symmetry_results,
 #'   what = "short_hypotheses",
-#'   variable = "PPI", component = "H0"
+#'   variable = "PetrolPrice", component = "H0"
 #' )
 #'
 #' @export
@@ -315,8 +327,8 @@ kardl_extract <- function(
 #' @method kardl_extract default
 #' @noRd
 kardl_extract.default <- function(
-    kardl_object, what, variable = NULL, component = NULL
-  ) {
+  kardl_object, what, variable = NULL, component = NULL
+) {
   stop(
     "No kardl_extract() method for objects of class: ",
     paste(class(kardl_object), collapse = ", "),
@@ -344,7 +356,7 @@ kardl_extract.default <- function(
 #' The selected component from the `kardl_mplier` object.
 #'
 #' @examples
-#' kardl_model <- kardl(CPI ~ ER, data = imf_example_data)
+#' kardl_model <- kardl(DriversKilled ~ PetrolPrice, data = Seatbelts)
 #' m <- mplier(kardl_model, horizon = 40)
 #'
 #' head(kardl_extract(m, what = "multipliers"))
@@ -353,7 +365,7 @@ kardl_extract.default <- function(
 #' @method kardl_extract kardl_mplier
 #' @noRd
 kardl_extract.kardl_mplier <- function(
-    kardl_object, what, variable = NULL, component = NULL
+  kardl_object, what, variable = NULL, component = NULL
 ) {
   what <- match.arg(what, c(
     "multipliers",
@@ -442,7 +454,7 @@ kardl_extract.kardl_boot <- function(
 #' @method kardl_extract kardl_test
 #' @noRd
 kardl_extract.kardl_test <- function(
-    kardl_object,
+  kardl_object,
   what, variable = NULL, component = NULL
 ) {
   what <- match.arg(
@@ -579,7 +591,7 @@ kardl_extract.kardl_test_summary <- function(
 #' The selected component from the fitted `kardl_lm` object.
 #'
 #' @examples
-#' kardl_model <- kardl(CPI ~ ER + PPI, data = imf_example_data)
+#' kardl_model <- kardl(DriversKilled ~ PetrolPrice + drivers, data = Seatbelts)
 #'
 #' kardl_extract(kardl_model, what = "dependent_var")
 #' kardl_extract(kardl_model, what = "independent_vars")
@@ -698,8 +710,8 @@ kardl_extract.kardl_lm <- function(
 #'   results for that variable are returned.
 #' @examples
 #' # Example usage:
-#' my_asymmetry_model <- kardl(CPI ~ asym(ER + PPI),
-#'   data = imf_example_data,
+#' my_asymmetry_model <- kardl(DriversKilled ~ asym(PetrolPrice + drivers),
+#'   data = Seatbelts,
 #'   max_lags = 1
 #' )
 #' symmetry_results <- symmetrytest(my_asymmetry_model)
@@ -711,23 +723,35 @@ kardl_extract.kardl_lm <- function(
 #' kardl_extract(symmetry_results, what = "call")
 #'
 #' kardl_extract(symmetry_results, what = "short_wald_tests")
-#' kardl_extract(symmetry_results, what = "short_wald_tests", variable = "PPI")
+#' kardl_extract(symmetry_results,
+#'   what = "short_wald_tests",
+#'   variable = "PetrolPrice"
+#' )
 #'
 #' kardl_extract(symmetry_results, what = "long_wald_tests")
-#' kardl_extract(symmetry_results, what = "long_wald_tests", variable = "PPI")
+#' kardl_extract(symmetry_results,
+#'   what = "long_wald_tests",
+#'   variable = "PetrolPrice"
+#' )
 #'
 #' kardl_extract(symmetry_results, what = "long_hypotheses")
-#' kardl_extract(symmetry_results, what = "long_hypotheses", variable = "PPI")
+#' kardl_extract(symmetry_results,
+#'   what = "long_hypotheses",
+#'   variable = "PetrolPrice"
+#' )
 #'
 #' kardl_extract(symmetry_results, what = "short_hypotheses")
-#' kardl_extract(symmetry_results, what = "short_hypotheses", variable = "PPI")
+#' kardl_extract(symmetry_results,
+#'   what = "short_hypotheses",
+#'   variable = "PetrolPrice"
+#' )
 #'
 #' kardl_extract(symmetry_results, what = "short_hypotheses", component = "H0")
 #' kardl_extract(symmetry_results, what = "short_hypotheses", component = "H1")
 #'
 #' kardl_extract(symmetry_results,
 #'   what = "short_hypotheses",
-#'   variable = "PPI", component = "H0"
+#'   variable = "PetrolPrice", component = "H0"
 #' )
 #'
 #' @export

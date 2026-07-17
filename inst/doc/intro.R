@@ -1,5 +1,8 @@
 ## ----setup, include=FALSE-----------------------------------------------------
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 16,
+  fig.height = 8,
+  out.width = "100%",
+  dpi = 150)
 
 ## ----srr-tags, eval = FALSE, echo = FALSE-------------------------------------
 # #' srr tags for the kardl package
@@ -48,8 +51,8 @@ library(kardl)
 
 ## ----data-prepare-------------------------------------------------------------
 # Define the model formula
-my_formula <- CPI ~ ER + PPI + asymmetric(ER + PPI) + deterministic(covid) +
-  trend
+my_formula <- DriversKilled ~ PetrolPrice + drivers +
+  asymmetric(PetrolPrice + drivers) + deterministic(law) + trend
 
 ## ----eval=FALSE---------------------------------------------------------------
 # same_formula <- y ~ asymmetric(x1) +
@@ -66,10 +69,10 @@ my_formula <- CPI ~ ER + PPI + asymmetric(ER + PPI) + deterministic(covid) +
 
 ## ----model-grid---------------------------------------------------------------
 # Set model options
-kardl_set(criterion = "BIC", different_asym_lag = TRUE, data = imf_example_data)
+kardl_set(criterion = "BIC", different_asym_lag = TRUE, data = Seatbelts)
 # Estimate model with grid mode
 kardl_model <- kardl(
-  data = imf_example_data, formula = my_formula,
+  data = Seatbelts, formula = my_formula,
   maxlag = 4, mode = "grid"
 )
 # View results
@@ -81,7 +84,7 @@ summary(kardl_model)
 
 ## ----model-user-defined-------------------------------------------------------
 kardl_model2 <- kardl(
-  data = imf_example_data, my_formula,
+  data = Seatbelts, my_formula,
   mode = c(2, 1, 1, 3, 0)
 )
 # View results
@@ -92,8 +95,8 @@ kardl_extract(kardl_model2, "opt_lag")
 summary(kardl_model2)
 
 ## ----model-all-vars-----------------------------------------------------------
-kardl_set(data = imf_example_data)
-kardl(formula = CPI ~ . + deterministic(covid), mode = "grid")
+kardl_set(data = Seatbelts)
+kardl(formula = DriversKilled ~ . + deterministic(law), maxlag = 2)
 
 ## ----lag-criteria-------------------------------------------------------------
 library(dplyr)
@@ -101,12 +104,11 @@ library(tidyr)
 library(ggplot2)
 # Convert lag_criteria to a data frame
 lag_criteria <- as.data.frame(kardl_extract(kardl_model, "lag_criteria"))
-colnames(lag_criteria) <- c("lag", "AIC", "BIC", "AICc", "HQ")
 lag_criteria <- lag_criteria |> mutate(across(c(AIC, BIC, HQ), as.numeric))
 
 # Pivot to long format
 lag_criteria_long <- lag_criteria |>
-  select(-AICc) |>
+  select(-c(AICc, AdjR2)) |>
   pivot_longer(
     cols = c(AIC, BIC, HQ),
     names_to = "Criteria",
@@ -133,6 +135,9 @@ ggplot(
     data = min_values, aes(x = lag, y = Value, label = lag),
     vjust = 1.5, color = "black", size = 3.5
   ) +
+  scale_x_discrete(
+    breaks = lag_criteria$lag[seq(1, nrow(lag_criteria), by = 20)]
+  ) +
   labs(
     title = "Lag Criteria Comparison",
     x = "Lag Configuration",
@@ -143,7 +148,7 @@ ggplot(
 
 ## ----ecm-estimation-----------------------------------------------------------
 ecm_model <- ecm(
-  data = imf_example_data, formula = my_formula,
+  data = Seatbelts, formula = my_formula,
   maxlag = 4, mode = "grid_custom"
 )
 # View results
@@ -159,10 +164,10 @@ my_long
 summary(my_long)
 
 ## ----asymmetry-test-----------------------------------------------------------
-ast <- imf_example_data |>
+ast <- Seatbelts |>
   kardl(
-    CPI ~ ER + PPI + asymmetric(ER + PPI) +
-      deterministic(covid) + trend,
+    DriversKilled ~ PetrolPrice + drivers + asymmetric(PetrolPrice + drivers) +
+      deterministic(law) + trend,
     mode = c(1, 2, 3, 0, 1),
     data = _
   ) |>
@@ -204,7 +209,7 @@ kardl_extract(multipliers, "omega")
 head(kardl_extract(multipliers, "lambda"))
 
 ## ----plot-multipliers---------------------------------------------------------
-plot(multipliers, variables = c("ER", "PPI"))
+plot(multipliers, variables = c("PetrolPrice", "drivers"))
 
 ## ----bootstrap-multipliers----------------------------------------------------
 bootstrap_results <- kardl_model |>
@@ -213,12 +218,12 @@ bootstrap_results <- kardl_model |>
 summary(bootstrap_results)
 
 ## ----plot-bootstrap-multipliers-----------------------------------------------
-plot(bootstrap_results, variables = "ER")
+plot(bootstrap_results, variables = "drivers")
 
 ## ----asym-custom--------------------------------------------------------------
 # Set custom prefixes and suffixes
 kardl_reset()
 kardl_set(asym_prefix = c("asyP_", "asyN_"), asym_suffix = c("_PP", "_NN"))
-kardl_custom <- kardl(data = imf_example_data, my_formula)
+kardl_custom <- kardl(data = Seatbelts, my_formula)
 kardl_custom
 
