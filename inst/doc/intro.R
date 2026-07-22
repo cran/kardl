@@ -1,8 +1,10 @@
 ## ----setup, include=FALSE-----------------------------------------------------
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 16,
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE, fig.width = 16,
   fig.height = 8,
   out.width = "100%",
-  dpi = 150)
+  dpi = 150
+)
 
 ## ----srr-tags, eval = FALSE, echo = FALSE-------------------------------------
 # #' srr tags for the kardl package

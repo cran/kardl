@@ -1,7 +1,7 @@
 Package: kardl
 Type: Package
 Title: Make Symmetric and Asymmetric ARDL Estimations
-Version: 2.0.4
+Version: 2.0.5
 Authors@R: 
   c(person(given = "Huseyin",
            family = "karamelikli",
@@ -30,7 +30,7 @@ Suggests: knitr, rmarkdown, magrittr, rlang, tidyr, dplyr, MASS,
         sandwich, testthat (>= 3.0.0)
 NeedsCompilation: no
 VignetteBuilder: knitr
-Packaged: 2026-07-17 13:14:39 UTC; huseyin
+Packaged: 2026-07-21 13:34:32 UTC; huseyin
 Author: Huseyin karamelikli [aut, cre] (ORCID:
     <https://orcid.org/0000-0001-7622-0972>),
   Huseyin Utku Demir [aut] (ORCID:
@@ -43,4 +43,4 @@ BugReports: https://github.com/karamelikli/kardl/issues
 RoxygenNote: 7.3.1
 Config/roxygen2/version: 8.0.0
 Repository: CRAN
-Date/Publication: 2026-07-17 13:50:02 UTC
+Date/Publication: 2026-07-22 09:10:02 UTC
