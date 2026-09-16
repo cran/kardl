@@ -1,4 +1,4 @@
-483bad84b71b90094a3526f01799fe09 *DESCRIPTION
+f8e65090a85d67ef212f61d9c7e8603a *DESCRIPTION
 bc0ee54c431992c8a925e6a8b9f2ea8d *NAMESPACE
 27cba25bc671827f836cd466d6fe7ab6 *NEWS.md
 23d84d14ac2886cf8a8bf0b53eace657 *R/critvals.R
@@ -8,17 +8,19 @@ c664f1aa6914f37a4525ea8a31970bce *R/kardl.R
 6ddb8e1fe0d5b6ccc47363e90b24bea4 *R/longrun.R
 6732717b7f495e2f8fb97f445c280ec9 *R/miscellaneous.R
 02df0d1751646d79ac262d5993066b31 *R/multipliers.R
+7a17408a7df72cea9f6bd575a57788c8 *R/old_versions_data.R
 6991c19a3310489fcc410ccb1887c8ba *R/prepare.R
 667ef9756df0a7adcf1e79e345918c1b *R/print.R
 69d4e19e7741f9f9b0bdd6aaea1d442f *R/srr-stats-standards.R
 2ad572c35d87bf1e0afed96c1bde6d22 *R/tests.R
 2b15986a4d61479d2755dc3a18e5e08a *R/zzz.R
 62bacb87399d47927ec574887ca0c2a7 *README.md
-21c9401b8c07f38d762ade4612fc4ffe *build/partial.rdb
+e85d5655b327535028291ada680feddb *build/stage23.rdb
 70ac48182a5ed48b8a244ec0884b6588 *build/vignette.rds
+5442adeba400f524717b3937207e9842 *data/imf_example_data.rda
 af6fd5fcb0b1109ec6dc22f28dc689e9 *inst/doc/intro.R
 be3aa295eb97fb1236bd67e9a2c652af *inst/doc/intro.Rmd
-1000b06dac7bd9cb328aca2e2ce189a0 *inst/doc/intro.html
+fc18bf1e23a84faeb6dbb984664bd622 *inst/doc/intro.html
 b6e6f8d0f67c2227b5a081499198af2d *man/bootstrap.Rd
 550a416f3ca7faac6c6a065b0e1afc16 *man/ecm.Rd
 1f43114450cba35bae0b111b7cf28595 *man/figures/KARDL.png
@@ -26,6 +28,7 @@ b6e6f8d0f67c2227b5a081499198af2d *man/bootstrap.Rd
 691b1eb2aec9e1bec96b79d11ba5e631 *man/figures/lifecycle-experimental.svg
 ed42e3fbd7cc30bc6ca8fa9b658e24a8 *man/figures/lifecycle-stable.svg
 bf2f1ad432ecccee3400afe533404113 *man/figures/lifecycle-superseded.svg
+d41f54020632cf38a18f564919be8e89 *man/imf_example_data.Rd
 6e4835b706c68904def47ef6bbfe9111 *man/kardl-package.Rd
 5a4324b5de09777d2bf7a65e9c8b61ab *man/kardl.Rd
 a8fa8be9fc95735479f0d0ee3e7fc6ac *man/kardl_extract.Rd
